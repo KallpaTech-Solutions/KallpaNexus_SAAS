@@ -464,6 +464,9 @@ namespace KallpaNexus.Infrastructure.Migrations.ApplicationDb
 
                     b.HasIndex("TenantId");
 
+                    b.HasIndex("TenantId", "Tipo")
+                        .IsUnique();
+
                     b.ToTable("MediosPago", (string)null);
                 });
 

@@ -134,6 +134,8 @@ public static class DevelopmentTenantDataSeeder
             });
             await appDb.SaveChangesAsync();
         }
+
+        await TenantMediosPagoSeeder.EnsureDefaultsAsync(appDb, tenant.Id);
     }
 
     /// <summary>
@@ -201,7 +203,6 @@ public static class DevelopmentTenantDataSeeder
             }
         }
 
-        await TenantMediosPagoSeeder.EnsureDefaultsAsync(appDb);
         await appDb.SaveChangesAsync();
     }
 

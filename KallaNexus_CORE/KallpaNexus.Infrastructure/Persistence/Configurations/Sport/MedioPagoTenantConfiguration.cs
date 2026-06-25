@@ -13,5 +13,6 @@ public class MedioPagoTenantConfiguration : IEntityTypeConfiguration<MedioPagoTe
         builder.Property(x => x.Nombre).HasMaxLength(80).IsRequired();
         builder.Property(x => x.ConfiguracionIntegracionJson).HasMaxLength(4000);
         builder.HasIndex(x => x.TenantId);
+        builder.HasIndex(x => new { x.TenantId, x.Tipo }).IsUnique();
     }
 }

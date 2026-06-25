@@ -67,12 +67,15 @@ var app = builder.Build();
 
 app.MapGet("/healthz", () => Results.Ok(new { status = "ok" }));
 
+app.MapGet("/health", () => Results.Text("OK", "text/plain; charset=utf-8"));
+
 app.MapGet("/", () =>
     Results.Ok(new
     {
         service = "Kallpa Nexus API",
         status = "ok",
         healthCheck = "/healthz",
+        ping = "/health",
         api = "/api",
     }));
 

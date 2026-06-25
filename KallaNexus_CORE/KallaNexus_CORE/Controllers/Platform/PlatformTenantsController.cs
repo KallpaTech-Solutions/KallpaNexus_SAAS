@@ -166,7 +166,7 @@ public class PlatformTenantsController : ControllerBase
         await _appDb.SaveChangesAsync();
 
         await TenantRbacSeeder.SeedRolesInicialesAsync(_appDb, tenant.Id);
-        await TenantMediosPagoSeeder.EnsureDefaultsAsync(_appDb);
+        await TenantMediosPagoSeeder.EnsureDefaultsAsync(_appDb, tenant.Id);
 
         return Ok(new
         {

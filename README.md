@@ -116,6 +116,21 @@ Estimación E2E (junio 2026):
 
 **Limitaciones piloto:** uploads en disco API efímeros en Render Free; Swagger solo en Development.
 
+### Keep-alive (Render Free)
+
+Los servicios Free se **apagan por inactividad** (~15 min). Un cron externo (UptimeRobot, cron-job.org, GitHub Actions, etc.) puede hacer **GET** cada **10–14 min** — **sin auth**, solo despertar el proceso:
+
+| Servicio | URL sugerida | Respuesta |
+|----------|--------------|-----------|
+| **kallpanexus-api** | `https://kallpanexus-api.onrender.com/health` | `OK` (texto) |
+| | `https://kallpanexus-api.onrender.com/healthz` | JSON `{ "status": "ok" }` (health check Render) |
+| **kallpanexus-tenant-web** | `https://kallpanexus-tenant-web.onrender.com/health` | `OK` |
+| **kallpanexus-admin-web** | `https://kallpanexus-admin-web.onrender.com/health` | `OK` |
+
+En Render → **Health Check Path** de la API: `/healthz`. En los fronts Node puedes usar `/health` si configuras health check.
+
+No expongas secretos en estas rutas; no hace falta JWT ni API key.
+
 ---
 
 ## Despliegue Render + Supabase
@@ -137,7 +152,7 @@ Estimación E2E (junio 2026):
 - **Root Directory:** `KallaNexus_CORE`
 - **Dockerfile Path:** `Dockerfile`
 - **Region:** Ohio (US East)
-- **Health Check Path:** `/healthz`
+- **Health Check Path:** `/healthz` (o `/health` para ping texto `OK`)
 
 ### API — variables
 
@@ -182,7 +197,7 @@ Si regeneras el token en el panel Decolecta, actualiza la misma variable y reini
 - **Root Directory:** `frontend`
 - **Build Command:** `npm ci && npm run build --workspace=tenant-web`
 - **Start Command:** `npm run start --workspace=tenant-web`
-- **Health Check Path:** vacío (o `/`)
+- **Health Check Path:** `/health` (respuesta `OK`) o vacío (`/`)
 
 **Variables:** `NODE_VERSION=20`, `KNX_API_URL=https://TU-API.onrender.com`, `NEXT_PUBLIC_APP_URL=https://TU-TENANT.onrender.com`, `NEXT_PUBLIC_ADMIN_URL=https://TU-ADMIN.onrender.com/login`  
 `NEXT_PUBLIC_*` deben existir **antes del build** (Render → Environment → marcar disponibles en build si aplica).
@@ -194,6 +209,7 @@ Si regeneras el token en el panel Decolecta, actualiza la misma variable y reini
 - **Root Directory:** `frontend`
 - **Build Command:** `npm ci && npm run build --workspace=admin-web`
 - **Start Command:** `npm run start --workspace=admin-web`
+- **Health Check Path:** `/health`
 
 **Variables:** `NODE_VERSION=20`, `KNX_API_URL`, `NEXT_PUBLIC_APP_URL=https://TU-ADMIN.onrender.com`, `NEXT_PUBLIC_TENANT_WEB_URL=https://TU-TENANT.onrender.com`
 

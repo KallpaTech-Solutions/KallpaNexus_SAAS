@@ -10,27 +10,43 @@ namespace KallpaNexus.Infrastructure.Tenancy;
 /// </summary>
 public static class TenantMediosPagoSeeder
 {
-    public static async Task EnsureDefaultsAsync(ApplicationDbContext appDb)
+    private static readonly (string Nombre, TipoMedioPago Tipo, bool VoucherOnline, bool SinVoucherPresencial, int Orden)[] Defaults =
+    [
+        ("Efectivo en caja", TipoMedioPago.Efectivo, false, true, 1),
+        ("Transferencia bancaria", TipoMedioPago.Transferencia, true, true, 2),
+        ("Yape", TipoMedioPago.Yape, true, true, 3),
+        ("Plin", TipoMedioPago.Plin, true, true, 4),
+        ("Izipay (POS)", TipoMedioPago.Izipay, true, true, 5),
+        ("Pasarela en línea (futuro)", TipoMedioPago.Pasarela, true, false, 99),
+    ];
+
+    public static async Task EnsureDefaultsAsync(ApplicationDbContext appDb, Guid tenantId)
     {
-        if (await appDb.MediosPago.AnyAsync())
+        if (tenantId == Guid.Empty)
         {
             return;
         }
 
-        var defaults = new (string Nombre, TipoMedioPago Tipo, bool VoucherOnline, bool SinVoucherPresencial, int Orden)[]
-        {
-            ("Efectivo en caja", TipoMedioPago.Efectivo, false, true, 1),
-            ("Transferencia bancaria", TipoMedioPago.Transferencia, true, true, 2),
-            ("Yape", TipoMedioPago.Yape, true, true, 3),
-            ("Plin", TipoMedioPago.Plin, true, true, 4),
-            ("Izipay (POS)", TipoMedioPago.Izipay, true, true, 5),
-            ("Pasarela en línea (futuro)", TipoMedioPago.Pasarela, true, false, 99),
-        };
+        await DeduplicateByNombreAsync(appDb);
 
-        foreach (var d in defaults)
+        var tiposExistentes = await appDb.MediosPago
+            .AsNoTracking()
+            .Select(m => m.Tipo)
+            .ToListAsync();
+
+        var tiposSet = tiposExistentes.ToHashSet();
+        var agregados = false;
+
+        foreach (var d in Defaults)
         {
+            if (tiposSet.Contains(d.Tipo))
+            {
+                continue;
+            }
+
             appDb.MediosPago.Add(new MedioPagoTenant
             {
+                TenantId = tenantId,
                 Nombre = d.Nombre,
                 Tipo = d.Tipo,
                 RequiereVoucherOnline = d.VoucherOnline,
@@ -39,8 +55,39 @@ public static class TenantMediosPagoSeeder
                 Orden = d.Orden,
                 Activo = d.Tipo != TipoMedioPago.Pasarela,
             });
+            agregados = true;
         }
 
+        if (agregados)
+        {
+            await appDb.SaveChangesAsync();
+        }
+    }
+
+    private static async Task DeduplicateByNombreAsync(ApplicationDbContext appDb)
+    {
+        var medios = await appDb.MediosPago
+            .OrderBy(m => m.Orden)
+            .ThenBy(m => m.Id)
+            .ToListAsync();
+
+        var vistos = new HashSet<(Guid TenantId, string Nombre)>();
+        var eliminar = new List<MedioPagoTenant>();
+
+        foreach (var m in medios)
+        {
+            if (!vistos.Add((m.TenantId, m.Nombre)))
+            {
+                eliminar.Add(m);
+            }
+        }
+
+        if (eliminar.Count == 0)
+        {
+            return;
+        }
+
+        appDb.MediosPago.RemoveRange(eliminar);
         await appDb.SaveChangesAsync();
     }
 }

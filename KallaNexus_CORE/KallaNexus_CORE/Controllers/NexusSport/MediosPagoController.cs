@@ -1,6 +1,7 @@
 using KallpaNexus.API.Infrastructure.Security;
 using KallpaNexus.API.Media;
 using KallpaNexus.Domain.Common;
+using KallpaNexus.Domain.Interfaces;
 using KallpaNexus.Domain.Modulos.Sport.Entities;
 using KallpaNexus.Domain.Modulos.Sport.Enums;
 using KallpaNexus.Infrastructure.Persistence;
@@ -19,18 +20,27 @@ public class MediosPagoController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
     private readonly TenantWebMediaService _media;
+    private readonly ITenantProvider _tenantProvider;
 
-    public MediosPagoController(ApplicationDbContext context, TenantWebMediaService media)
+    public MediosPagoController(
+        ApplicationDbContext context,
+        TenantWebMediaService media,
+        ITenantProvider tenantProvider)
     {
         _context = context;
         _media = media;
+        _tenantProvider = tenantProvider;
     }
 
     [HttpGet]
     [HasTenantPermission(PermisosApp.CanchasVer)]
     public async Task<IActionResult> Listar()
     {
-        await TenantMediosPagoSeeder.EnsureDefaultsAsync(_context);
+        var tenantId = _tenantProvider.GetTenantId();
+        if (tenantId is { } tid)
+        {
+            await TenantMediosPagoSeeder.EnsureDefaultsAsync(_context, tid);
+        }
 
         var items = await _context.MediosPago
             .OrderBy(m => m.Orden)

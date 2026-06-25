@@ -59,6 +59,8 @@ namespace KallpaNexus.API.Middleware
         }
 
         private static bool IsInfrastructurePath(PathString path) =>
-            path.StartsWithSegments("/healthz") || path == "/";
+            path.StartsWithSegments("/healthz") ||
+            path.StartsWithSegments("/health") ||
+            path == "/";
     }
  }
