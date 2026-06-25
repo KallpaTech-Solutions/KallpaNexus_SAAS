@@ -93,7 +93,7 @@ export function formatDireccionDesdeDisplayName(displayName: string, maxPartes =
     .join(", ");
 }
 
-function mapHitToSugerencia(hit: NominatimHit, _queryNorm: string): GeoSugerencia {
+function mapHitToSugerencia(hit: NominatimHit): GeoSugerencia {
   const larga = formatDireccionDesdeDisplayName(hit.display_name, 5);
   const corta = formatDireccionCorta(hit.address, hit.display_name);
   const titulo = larga.length >= corta.length ? larga : corta;
@@ -185,7 +185,7 @@ export async function buscarSugerenciasDireccion(
       const key = `${hit.lat},${hit.lon}`;
       if (seen.has(key)) continue;
       seen.add(key);
-      const sug = mapHitToSugerencia(hit, queryNorm);
+      const sug = mapHitToSugerencia(hit);
       ranked.push({
         sug,
         score: scoreHit(hit, queryNorm),

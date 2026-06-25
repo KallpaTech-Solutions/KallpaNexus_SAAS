@@ -2,6 +2,7 @@
 
 import { PERMISOS_SPORT } from "@kallpanexus/types";
 import { getApiErrorMessage } from "@kallpanexus/api-client";
+import axios from "axios";
 import { formatMoneyPEN, fechaHoyLimaInput, fechaLimaInputConOffset } from "@kallpanexus/shared";
 import { useTenantApi } from "@/lib/api-context";
 import { canAccess, useAuthStore } from "@/lib/auth-store";
@@ -76,7 +77,7 @@ export default function EgresosPage() {
       setShowForm(false); setCategoria("Servicios"); setDesc(""); setMonto(""); setMedioPago(""); setObs(""); setErrorMsg("");
     },
     onError: (err) => {
-      if (err instanceof Error && !(err as any).isAxiosError) {
+      if (err instanceof Error && !axios.isAxiosError(err)) {
         setErrorMsg(err.message);
       } else {
         setErrorMsg(getApiErrorMessage(err));

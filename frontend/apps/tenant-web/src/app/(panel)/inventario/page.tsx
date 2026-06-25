@@ -3,6 +3,7 @@
 import { PERMISOS_SPORT } from "@kallpanexus/types";
 import type { ProductoListItem } from "@kallpanexus/types";
 import { getApiErrorMessage } from "@kallpanexus/api-client";
+import axios from "axios";
 import { formatMoneyPEN, fechaHoyLimaInput, fechaLimaInputConOffset } from "@kallpanexus/shared";
 import { useTenantApi } from "@/lib/api-context";
 import { canAccess, useAuthStore } from "@/lib/auth-store";
@@ -13,6 +14,11 @@ import { AlertTriangle, Package, ShoppingBag } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useSearchParams } from "next/navigation";
 import { ConfirmacionModal } from "@/components/confirmacion-modal";
+import { Suspense } from "react";
+
+function InventarioPageFallback() {
+  return <div className="p-8 text-slate-500">Cargando inventario…</div>;
+}
 
 const CATEGORIA_COLOR: Record<string, string> = {
   Bebida:    "bg-sky-100 text-sky-800 ring-sky-300",
@@ -41,6 +47,14 @@ function formatFechaHora(iso: string) {
 }
 
 export default function InventarioPage() {
+  return (
+    <Suspense fallback={<InventarioPageFallback />}>
+      <InventarioPageContent />
+    </Suspense>
+  );
+}
+
+function InventarioPageContent() {
   const api      = useTenantApi();
   const qc       = useQueryClient();
   const permisos = useAuthStore((s) => s.session?.permisos ?? []);
@@ -92,7 +106,7 @@ export default function InventarioPage() {
           ))}
       </div>
 
-      {tab === "inventario" && <TabInventario api={api} qc={qc} sucursalIdParaApi={sucursalIdParaApi} puedeProductos={puedeProductos} />}
+      {tab === "inventario" && <TabInventario api={api} sucursalIdParaApi={sucursalIdParaApi} puedeProductos={puedeProductos} />}
       {tab === "compras"    && <TabCompras    api={api} qc={qc} sucursalIdParaApi={sucursalIdParaApi} puedeCrear={puedeComprasCrear} />}
       {tab === "catalogo"   && <TabCatalogo   api={api} qc={qc} sucursalIdParaApi={sucursalIdParaApi} sucursalActualId={sucursalActivaId ?? undefined} />}
     </div>
@@ -102,10 +116,9 @@ export default function InventarioPage() {
 // ─── Tab: Estado del stock ────────────────────────────────────────────────────
 
 function TabInventario({
-  api, qc, sucursalIdParaApi, puedeProductos,
+  api, sucursalIdParaApi, puedeProductos,
 }: {
   api: ReturnType<typeof useTenantApi>;
-  qc: ReturnType<typeof useQueryClient>;
   sucursalIdParaApi: string | undefined;
   puedeProductos: boolean;
 }) {
@@ -277,7 +290,7 @@ function TabCompras({
       setShowForm(false); resetForm();
     },
     onError: (err) => {
-      if (err instanceof Error && !(err as any).isAxiosError) setErrorMsg(err.message);
+      if (err instanceof Error && !axios.isAxiosError(err)) setErrorMsg(err.message);
       else setErrorMsg(getApiErrorMessage(err));
     },
   });
@@ -324,7 +337,7 @@ function TabCompras({
                 ))}
               </select>
               {productosConControl.length === 0 && (
-                <p className="text-xs text-amber-600 mt-1">Activa "control de stock" en Inventario → Catálogo.</p>
+                <p className="text-xs text-amber-600 mt-1">Activa control de stock en Inventario → Catálogo.</p>
               )}
             </div>
             {/* Proveedor */}
@@ -542,7 +555,7 @@ function TabCatalogo({
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["productos-todos"] }); qc.invalidateQueries({ queryKey: ["productos-activos"] }); setShowNuevo(false); setForm(formVacio); setErrorMsg(""); },
     onError: (err) => {
-      if (err instanceof Error && !(err as any).isAxiosError) setErrorMsg(err.message);
+      if (err instanceof Error && !axios.isAxiosError(err)) setErrorMsg(err.message);
       else setErrorMsg(getApiErrorMessage(err));
     },
   });
@@ -564,7 +577,7 @@ function TabCatalogo({
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["productos-todos"] }); qc.invalidateQueries({ queryKey: ["productos-activos"] }); setEditando(null); setErrorMsg(""); },
     onError: (err) => {
-      if (err instanceof Error && !(err as any).isAxiosError) setErrorMsg(err.message);
+      if (err instanceof Error && !axios.isAxiosError(err)) setErrorMsg(err.message);
       else setErrorMsg(getApiErrorMessage(err));
     },
   });

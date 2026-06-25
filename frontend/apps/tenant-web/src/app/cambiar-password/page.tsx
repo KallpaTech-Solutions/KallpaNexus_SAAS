@@ -37,6 +37,7 @@ export default function CambiarPasswordPage() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!session) return;
     setError(null);
     if (nueva !== confirmar) {
       setError("La confirmación no coincide.");

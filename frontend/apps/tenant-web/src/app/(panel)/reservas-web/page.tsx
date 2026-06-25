@@ -1,7 +1,7 @@
 "use client";
 
 import { PERMISOS_SPORT } from "@kallpanexus/types";
-import type { ReservaListItem } from "@kallpanexus/types";
+import type { ReservaListItem, ConfiguracionNegocio } from "@kallpanexus/types";
 import {
   formatDateTime,
   esSinTelefonoCliente,
@@ -503,7 +503,7 @@ function FilaReservaWeb({
   onEliminar,
 }: {
   reserva: ReservaListItem;
-  configuracionNegocio: unknown;
+  configuracionNegocio: ConfiguracionNegocio | undefined;
   puedeConfirmar: boolean;
   puedeRechazar: boolean;
   puedeGestionar: boolean;

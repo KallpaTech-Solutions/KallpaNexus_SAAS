@@ -97,7 +97,7 @@ export function EstadoReservaBadge({ reserva: r }: { reserva: ReservaListItem })
     } else if (estado === "Pendiente") {
       label = "Pendiente";
     }
-  } else if (estado === "Confirmada") {
+  } else if (estado === "Completada") {
     label = "Pagado";
   }
 

@@ -74,7 +74,7 @@ async function proxyRequest(req: NextRequest, pathSegments: string[]) {
     responseHeaders.set("content-type", upstreamContentType);
   }
 
-  return new NextResponse(upstream.body, {
+  return new NextResponse(new Uint8Array(upstream.body), {
     status: upstream.status,
     headers: responseHeaders,
   });

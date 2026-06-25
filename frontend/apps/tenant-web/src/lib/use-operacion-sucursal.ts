@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuthStore, usePermisosSession, useSucursalesSession, useSucursalActivaId } from "@/lib/auth-store";
+import { useAuthStore, useSucursalesSession, useSucursalActivaId } from "@/lib/auth-store";
 import { useCallback, useMemo } from "react";
 
 /** Sucursal activa para filtrar listados (API y UI). Gerente: solo si eligió sede; staff: siempre su sede. */

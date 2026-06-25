@@ -1,7 +1,7 @@
 "use client";
 
 import { PERMISOS_SPORT } from "@kallpanexus/types";
-import type { ProductoListItem, VentaListItem } from "@kallpanexus/types";
+import type { ProductoListItem } from "@kallpanexus/types";
 import { getApiErrorMessage } from "@kallpanexus/api-client";
 import {
   formatMoneyPEN,
@@ -75,7 +75,7 @@ export default function VentasPage() {
   const api      = useTenantApi();
   const qc       = useQueryClient();
   const permisos = useAuthStore((s) => s.session?.permisos ?? []);
-  const { sucursalIdParaApi, sucursalActivaId } = useOperacionSucursal();
+  const { sucursalIdParaApi } = useOperacionSucursal();
 
   const puedeVer   = canAccess(permisos, PERMISOS_SPORT.ventasVer);
   const puedeCrear = canAccess(permisos, PERMISOS_SPORT.ventasCrear);
