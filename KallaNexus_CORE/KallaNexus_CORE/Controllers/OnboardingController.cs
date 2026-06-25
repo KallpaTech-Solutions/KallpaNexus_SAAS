@@ -218,6 +218,7 @@ public class OnboardingController : ControllerBase
             await _appDb.SaveChangesAsync();
 
             await TenantRbacSeeder.SeedRolesInicialesAsync(_appDb, tenant.Id);
+            await TenantMediosPagoSeeder.EnsureDefaultsAsync(_appDb);
 
             Guid? staffGerenteId = null;
             var dniGerente = request.Tipo == TipoPersona.Empresa

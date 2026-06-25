@@ -201,40 +201,8 @@ public static class DevelopmentTenantDataSeeder
             }
         }
 
-        await SeedMediosPagoAsync(appDb);
+        await TenantMediosPagoSeeder.EnsureDefaultsAsync(appDb);
         await appDb.SaveChangesAsync();
-    }
-
-    private static async Task SeedMediosPagoAsync(ApplicationDbContext appDb)
-    {
-        if (await appDb.MediosPago.AnyAsync())
-        {
-            return;
-        }
-
-        var defaults = new (string Nombre, TipoMedioPago Tipo, bool VoucherOnline, bool SinVoucherPresencial, int Orden)[]
-        {
-            ("Efectivo en caja", TipoMedioPago.Efectivo, false, true, 1),
-            ("Transferencia bancaria", TipoMedioPago.Transferencia, true, true, 2),
-            ("Yape", TipoMedioPago.Yape, true, true, 3),
-            ("Plin", TipoMedioPago.Plin, true, true, 4),
-            ("Izipay (POS)", TipoMedioPago.Izipay, true, true, 5),
-            ("Pasarela en línea (futuro)", TipoMedioPago.Pasarela, true, false, 99)
-        };
-
-        foreach (var d in defaults)
-        {
-            appDb.MediosPago.Add(new MedioPagoTenant
-            {
-                Nombre = d.Nombre,
-                Tipo = d.Tipo,
-                RequiereVoucherOnline = d.VoucherOnline,
-                PermiteSinVoucherPresencial = d.SinVoucherPresencial,
-                EsPasarelaExterna = d.Tipo == TipoMedioPago.Pasarela,
-                Orden = d.Orden,
-                Activo = d.Tipo != TipoMedioPago.Pasarela
-            });
-        }
     }
 
     private static string Capitalize(string value) =>

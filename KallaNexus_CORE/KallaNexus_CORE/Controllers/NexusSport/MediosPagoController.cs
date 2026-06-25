@@ -3,6 +3,8 @@ using KallpaNexus.API.Media;
 using KallpaNexus.Domain.Common;
 using KallpaNexus.Domain.Modulos.Sport.Entities;
 using KallpaNexus.Domain.Modulos.Sport.Enums;
+using KallpaNexus.Infrastructure.Persistence;
+using KallpaNexus.Infrastructure.Tenancy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -28,6 +30,8 @@ public class MediosPagoController : ControllerBase
     [HasTenantPermission(PermisosApp.CanchasVer)]
     public async Task<IActionResult> Listar()
     {
+        await TenantMediosPagoSeeder.EnsureDefaultsAsync(_context);
+
         var items = await _context.MediosPago
             .OrderBy(m => m.Orden)
             .ThenBy(m => m.Nombre)
