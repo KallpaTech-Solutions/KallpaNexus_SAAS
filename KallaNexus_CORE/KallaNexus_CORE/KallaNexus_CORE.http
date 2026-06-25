@@ -1,0 +1,6 @@
+@KallaNexus_CORE_HostAddress = http://localhost:5232
+
+GET {{KallaNexus_CORE_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

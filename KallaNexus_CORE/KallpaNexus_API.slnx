@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="KallaNexus_CORE/KallpaNexus.API.csproj" />
+  <Project Path="KallpaNexus.Application/KallpaNexus.Application.csproj" />
+  <Project Path="KallpaNexus.Domain/KallpaNexus.Domain.csproj" />
+  <Project Path="KallpaNexus.Infrastructure/KallpaNexus.Infrastructure.csproj" />
+</Solution>
