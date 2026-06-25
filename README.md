@@ -93,6 +93,7 @@ Al arrancar, el API aplica migraciones de **ApplicationDb**; **Master** requiere
 |------|------------|---------------------|
 | Postgres | User Secrets | `ConnectionStrings__MasterConnection`, `ConnectionStrings__SharedTenantConnection` |
 | JWT / Platform | `appsettings.Development.json` + secrets | `Jwt__*`, `Platform__*` |
+| **Decolecta** (RENIEC/SUNAT) | User Secrets `Decolecta:ApiKey` | `Decolecta__ApiKey`, opcional `Decolecta__BaseUrl` |
 | URL API (front) | `apps/*/.env.local` → `KNX_API_URL` | Env en tenant-web y admin-web |
 
 Referencia front: `frontend/.env.example`.
@@ -139,7 +140,27 @@ Estimación E2E (junio 2026):
 
 ### API — variables
 
-`ASPNETCORE_ENVIRONMENT=Production`, `ASPNETCORE_URLS=http://0.0.0.0:$PORT`, connection strings Supabase, `Jwt__Key` (≥32 chars, distinto a dev), `Platform__*`, `Decolecta__*` opcional. **No** `Development:SeedDemoData` en prod.
+`ASPNETCORE_ENVIRONMENT=Production`, `ASPNETCORE_URLS=http://0.0.0.0:$PORT`, connection strings Supabase, `Jwt__Key` (≥32 chars, distinto a dev), `Platform__*`. **No** `Development:SeedDemoData` en prod.
+
+### API — Decolecta (Render)
+
+Consultas DNI/RUC/tipo de cambio usan [Decolecta](https://decolecta.com). **No** commitees la API key; contrólala solo con variables de entorno del servicio **kallpanexus-api**:
+
+| Variable | Obligatoria | Notas |
+|----------|-------------|--------|
+| `Decolecta__ApiKey` | Sí, si usas consultas RENIEC/SUNAT en prod | Marca como **Secret** en Render. Token Bearer de la cuenta Decolecta activa. |
+| `Decolecta__BaseUrl` | No | Por defecto `https://api.decolecta.com` (`appsettings.Production.json`). Solo cámbiala si Decolecta te indica otra URL. |
+
+**Desarrollo local** (misma clave u otra de prueba):
+
+```powershell
+cd KallaNexus_CORE\KallaNexus_CORE
+dotnet user-secrets set "Decolecta:ApiKey" "TU_TOKEN_DECOLECTA"
+```
+
+**Cuota mensual agotada (~100 consultas):** en Render → **Environment** → edita `Decolecta__ApiKey` con el token de tu **segunda cuenta** → guardar (Render reinicia el servicio). No hace falta redeploy desde Git. Los DNI ya guardados en `Personas` / clientes siguen sirviendo sin llamar a la API.
+
+Si regeneras el token en el panel Decolecta, actualiza la misma variable y reinicia.
 
 ### tenant-web — variables
 

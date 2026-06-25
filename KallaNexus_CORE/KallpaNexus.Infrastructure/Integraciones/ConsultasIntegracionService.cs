@@ -80,7 +80,7 @@ public class ConsultasIntegracionService
         {
             return DniConsultaResponse.Error(
                 503,
-                "API Decolecta no configurada. Define Decolecta:ApiKey en User Secrets.");
+                "API Decolecta no configurada. Define Decolecta:ApiKey (local: User Secrets; prod: Decolecta__ApiKey en Render).");
         }
 
         var apiCall = await _decolecta.GetDniAsync(dni, ct);
@@ -240,12 +240,12 @@ public class ConsultasIntegracionService
         // Decolecta suele devolver ambos textos en un solo 401; priorizar clave inválida.
         if (raw.Contains("Apikey Required", StringComparison.OrdinalIgnoreCase))
         {
-            return "API key de Decolecta no válida o revocada (regeneraste el token). Actualiza Decolecta:ApiKey en User Secrets con la clave del panel y reinicia la API.";
+            return "API key de Decolecta no válida o revocada. Actualiza Decolecta:ApiKey / Decolecta__ApiKey y reinicia la API.";
         }
 
         if (raw.Contains("Limit Exceeded", StringComparison.OrdinalIgnoreCase))
         {
-            return "Cuota mensual de Decolecta agotada (~100 consultas). Puedes escribir el nombre manualmente o usar un DNI ya guardado en clientes/caché.";
+            return "Cuota mensual de Decolecta agotada (~100 consultas). Cambia Decolecta__ApiKey por otra cuenta en Render, escribe el nombre manualmente o usa un DNI ya guardado.";
         }
 
         return raw;

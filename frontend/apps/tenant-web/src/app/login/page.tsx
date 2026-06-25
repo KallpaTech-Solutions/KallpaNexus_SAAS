@@ -14,7 +14,7 @@ import type { TenantStaffLoginResponse, TenantStaffNegocioOpcion } from "@kallpa
 import { useTenantApi } from "@/lib/api-context";
 import { mapLoginSucursales, useAuthStore } from "@/lib/auth-store";
 import { cn } from "@/lib/cn";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 function mapLoginResponse(data: TenantStaffLoginResponse) {
@@ -39,6 +39,7 @@ function mapLoginResponse(data: TenantStaffLoginResponse) {
 export default function LoginPage() {
   const api = useTenantApi();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const session = useAuthStore((s) => s.session);
   const setSubdomain = useAuthStore((s) => s.setSubdomain);
   const setSession = useAuthStore((s) => s.setSession);
@@ -56,6 +57,12 @@ export default function LoginPage() {
     () => subFromHost === null && !getDevTenantSubdomain(),
     [subFromHost]
   );
+
+  useEffect(() => {
+    if (searchParams.get("sesion") === "expirada") {
+      setError("Tu sesión expiró. Vuelve a iniciar sesión.");
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (session) {

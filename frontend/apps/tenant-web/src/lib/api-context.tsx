@@ -11,8 +11,16 @@ import {
   getStoredTenantToken,
 } from "@kallpanexus/shared";
 import { createContext, useContext, useMemo, type ReactNode } from "react";
+import { useAuthStore } from "@/lib/auth-store";
 
 const ApiContext = createContext<TenantSportApi | null>(null);
+
+function redirectTenantLoginSesionExpirada(): void {
+  useAuthStore.getState().logout();
+  if (typeof window !== "undefined") {
+    window.location.replace("/login?sesion=expirada");
+  }
+}
 
 export function ApiProvider({ children }: { children: ReactNode }) {
   const api = useMemo(() => {
@@ -24,6 +32,7 @@ export function ApiProvider({ children }: { children: ReactNode }) {
         if (fromHost) return fromHost;
         return getDevTenantSubdomain() ?? null;
       },
+      onSessionExpired: redirectTenantLoginSesionExpirada,
     });
     return createTenantSportApi(client);
   }, []);

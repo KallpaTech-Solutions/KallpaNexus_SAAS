@@ -30,7 +30,49 @@ export type ApiClientConfig = {
   baseURL: string;
   getToken: () => string | null;
   getTenantSubdomain: () => string | null;
+  /** Si la API responde 401 con token presente (p. ej. JWT expirado), limpia sesión y redirige. */
+  onSessionExpired?: () => void;
 };
+
+function isTenantAuthRequest(url: string): boolean {
+  return (
+    url.includes("/api/tenant/auth/login-global") ||
+    url.includes("/api/tenant/auth/login")
+  );
+}
+
+let handlingSessionExpired = false;
+
+function attachSessionExpiredInterceptor(
+  client: AxiosInstance,
+  config: {
+    getToken: () => string | null;
+    onSessionExpired: () => void;
+    skipAuthUrl: (url: string) => boolean;
+  }
+): void {
+  client.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      if (!axios.isAxiosError(error) || error.response?.status !== 401) {
+        return Promise.reject(error);
+      }
+      const url = error.config?.url ?? "";
+      if (config.skipAuthUrl(url) || !config.getToken()) {
+        return Promise.reject(error);
+      }
+      if (handlingSessionExpired) {
+        return Promise.reject(error);
+      }
+      handlingSessionExpired = true;
+      config.onSessionExpired();
+      globalThis.setTimeout(() => {
+        handlingSessionExpired = false;
+      }, 5000);
+      return Promise.reject(error);
+    }
+  );
+}
 
 export function createApiClient(config: ApiClientConfig): AxiosInstance {
   const client = axios.create({
@@ -56,6 +98,14 @@ export function createApiClient(config: ApiClientConfig): AxiosInstance {
     }
     return req;
   });
+
+  if (config.onSessionExpired) {
+    attachSessionExpiredInterceptor(client, {
+      getToken: config.getToken,
+      onSessionExpired: config.onSessionExpired,
+      skipAuthUrl: isTenantAuthRequest,
+    });
+  }
 
   return client;
 }
@@ -824,7 +874,12 @@ export type PlatformUsuarioListItem = {
 export type PlatformApiConfig = {
   baseURL: string;
   getToken: () => string | null;
+  onSessionExpired?: () => void;
 };
+
+function isPlatformAuthRequest(url: string): boolean {
+  return url.includes("/api/platform/auth/login");
+}
 
 export function createPlatformApi(config: PlatformApiConfig): AxiosInstance {
   const client = axios.create({
@@ -839,6 +894,14 @@ export function createPlatformApi(config: PlatformApiConfig): AxiosInstance {
     }
     return req;
   });
+
+  if (config.onSessionExpired) {
+    attachSessionExpiredInterceptor(client, {
+      getToken: config.getToken,
+      onSessionExpired: config.onSessionExpired,
+      skipAuthUrl: isPlatformAuthRequest,
+    });
+  }
 
   return client;
 }

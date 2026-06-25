@@ -6,12 +6,13 @@ import { applyPlatformTheme, readPlatformTheme } from "@/lib/platform-theme";
 import { platformUi } from "@/lib/platform-ui";
 import { getApiErrorMessage, type PlatformLoginResponse } from "@kallpanexus/api-client";
 import { Layers, Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function PlatformLoginPage() {
   const api = usePlatformApi();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const session = usePlatformAuthStore((s) => s.session);
   const setSession = usePlatformAuthStore((s) => s.setSession);
   const [email, setEmail] = useState("");
@@ -22,6 +23,12 @@ export default function PlatformLoginPage() {
   useEffect(() => {
     applyPlatformTheme(readPlatformTheme());
   }, []);
+
+  useEffect(() => {
+    if (searchParams.get("sesion") === "expirada") {
+      setError("Tu sesión expiró. Vuelve a iniciar sesión.");
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (session?.token) router.replace("/dashboard");
