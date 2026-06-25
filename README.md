@@ -121,11 +121,21 @@ Estimación E2E (junio 2026):
 
 **Arquitectura:** 1 repo GitHub privado → **3 Web Services** Render + 1 Supabase.
 
-| Servicio | Root | Build | Start |
-|----------|------|-------|-------|
-| **API** | `KallaNexus_CORE` | `dotnet publish KallaNexus_CORE/KallpaNexus.API.csproj -c Release -o ./out` | `dotnet ./out/KallpaNexus.API.dll` |
-| **tenant-web** | `frontend` | `npm ci && npm run build --workspace=tenant-web` | `npm run start --workspace=tenant-web` |
-| **admin-web** | `frontend` | `npm ci && npm run build --workspace=admin-web` | `npm run start --workspace=admin-web` |
+| Servicio | Root Directory | Language | Dockerfile / comandos |
+|----------|----------------|----------|------------------------|
+| **API** | `KallaNexus_CORE` | **Docker** | `Dockerfile` (en esa carpeta) |
+| **tenant-web** | `frontend` | **Node** | build/start npm (ver abajo) |
+| **admin-web** | `frontend` | **Node** | build/start npm (ver abajo) |
+
+**Fronts (Node):** Build `npm ci && npm run build --workspace=tenant-web` (o `admin-web`). Start `npm run start --workspace=tenant-web` (Render inyecta `PORT`).
+
+### API — Render (formulario)
+
+- **Name:** `kallpanexus-api`
+- **Language:** Docker
+- **Root Directory:** `KallaNexus_CORE`
+- **Dockerfile Path:** `Dockerfile`
+- **Region:** Ohio (US East)
 
 ### API — variables
 
