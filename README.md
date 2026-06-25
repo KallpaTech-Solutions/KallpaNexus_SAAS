@@ -137,10 +137,23 @@ Estimación E2E (junio 2026):
 - **Root Directory:** `KallaNexus_CORE`
 - **Dockerfile Path:** `Dockerfile`
 - **Region:** Ohio (US East)
+- **Health Check Path:** `/healthz`
 
 ### API — variables
 
-`ASPNETCORE_ENVIRONMENT=Production`, `ASPNETCORE_URLS=http://0.0.0.0:$PORT`, connection strings Supabase, `Jwt__Key` (≥32 chars, distinto a dev), `Platform__*`. **No** `Development:SeedDemoData` en prod.
+`ASPNETCORE_ENVIRONMENT=Production`, `ASPNETCORE_URLS=http://0.0.0.0:$PORT` (opcional si usas imagen reciente: la API también lee env **`PORT`** de Render), connection strings Supabase, `Jwt__Key` (≥32 chars, distinto a dev), `Platform__*`. **No** `Development:SeedDemoData` en prod.
+
+**Render + Supabase:** no uses el host directo `db.PROJECT_REF.supabase.co` en las connection strings (suele resolver a **IPv6** → `Network is unreachable` en el contenedor). Usa el **Session pooler** (IPv4), mismo valor en `ConnectionStrings__MasterConnection` y `ConnectionStrings__SharedTenantConnection`:
+
+```text
+Host=aws-1-us-east-1.pooler.supabase.com;Port=5432;Database=postgres;Username=postgres.TU_PROJECT_REF;Password=TU_PASSWORD;SSL Mode=Require;Trust Server Certificate=true
+```
+
+**Usuario:** con Session pooler debe ser `postgres.xunhqcirknuawqvvbdel` (ref de tu proyecto), **no** solo `postgres`. Si el log dice `password authentication failed for user "postgres"`, casi seguro falta el sufijo `.PROJECT_REF` en `Username`.
+
+**Password:** la contraseña actual de Database en Supabase (si la rotaste, actualiza Render). Si la password tiene `;` o `@`, escríbela tal cual o resetea una password alfanumérica simple para deploy.
+
+Copia host, usuario (`postgres.xxxxx`) y password desde Supabase → **Connect** → **Session pooler**. Tras guardar env vars, Render redeploya solo.
 
 ### API — Decolecta (Render)
 
@@ -162,7 +175,29 @@ dotnet user-secrets set "Decolecta:ApiKey" "TU_TOKEN_DECOLECTA"
 
 Si regeneras el token en el panel Decolecta, actualiza la misma variable y reinicia.
 
-### tenant-web — variables
+### tenant-web — Render (Node)
+
+- **Name:** `kallpanexus-tenant-web`
+- **Language:** Node
+- **Root Directory:** `frontend`
+- **Build Command:** `npm ci && npm run build --workspace=tenant-web`
+- **Start Command:** `npm run start --workspace=tenant-web`
+- **Health Check Path:** vacío (o `/`)
+
+**Variables:** `NODE_VERSION=20`, `KNX_API_URL=https://TU-API.onrender.com`, `NEXT_PUBLIC_APP_URL=https://TU-TENANT.onrender.com`, `NEXT_PUBLIC_ADMIN_URL=https://TU-ADMIN.onrender.com/login`  
+`NEXT_PUBLIC_*` deben existir **antes del build** (Render → Environment → marcar disponibles en build si aplica).
+
+### admin-web — Render (Node)
+
+- **Name:** `kallpanexus-admin-web`
+- **Language:** Node
+- **Root Directory:** `frontend`
+- **Build Command:** `npm ci && npm run build --workspace=admin-web`
+- **Start Command:** `npm run start --workspace=admin-web`
+
+**Variables:** `NODE_VERSION=20`, `KNX_API_URL`, `NEXT_PUBLIC_APP_URL=https://TU-ADMIN.onrender.com`, `NEXT_PUBLIC_TENANT_WEB_URL=https://TU-TENANT.onrender.com`
+
+### tenant-web — variables (referencia)
 
 `NODE_VERSION=20`, `KNX_API_URL`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_ADMIN_URL`
 

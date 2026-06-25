@@ -17,6 +17,12 @@ namespace KallpaNexus.API.Middleware
 
         public async Task InvokeAsync(HttpContext context, MasterDbContext masterDb, ITenantProvider tenantProvider)
         {
+            if (context.Request.Path.StartsWithSegments("/healthz"))
+            {
+                await _next(context);
+                return;
+            }
+
             // 1. Extraer el host (ej: sportza.kallpanexus.com)
             var host = context.Request.Host.Host;
 

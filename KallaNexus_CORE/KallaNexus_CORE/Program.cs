@@ -13,6 +13,13 @@ using KallpaNexus.API.Swagger;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Render inyecta PORT numérico; ASPNETCORE_URLS con "$PORT" literal deja Kestrel en :80 y falla el health check.
+var renderPort = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrWhiteSpace(renderPort))
+{
+    builder.WebHost.UseUrls($"http://0.0.0.0:{renderPort}");
+}
+
 // --- 1. CONFIGURACIÓN DE SERVICIOS ---
 
 // Agregamos el parche para ignorar ciclos JSON y mostrar ENUMS como texto
@@ -58,6 +65,8 @@ builder.Services.AddOpenApi();
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 var app = builder.Build();
 
+app.MapGet("/healthz", () => Results.Ok(new { status = "ok" }));
+
 // --- 2. CONFIGURACIÓN DEL PIPELINE (EL ORDEN IMPORTA) ---
 
 if (app.Environment.IsDevelopment())
@@ -78,7 +87,11 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsProduction())
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseStaticFiles();
 
 // Subdominio por URL o header (opcional)
