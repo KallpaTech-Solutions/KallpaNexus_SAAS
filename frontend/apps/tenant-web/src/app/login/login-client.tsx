@@ -8,7 +8,7 @@ import {
 } from "@kallpanexus/api-client";
 import { ApiConexionAnimada } from "@/components/api-conexion-animada";
 import { CuentaDesactivadaAviso } from "@/components/cuenta-desactivada-aviso";
-import { getDevTenantSubdomain } from "@kallpanexus/env";
+import { getDevTenantSubdomain, isKnxLocalDev } from "@kallpanexus/env";
 import { normalizarDniStaff, resolveTenantSubdomainFromHost } from "@kallpanexus/shared";
 import type { TenantStaffLoginResponse, TenantStaffNegocioOpcion } from "@kallpanexus/types";
 import { useTenantApi } from "@/lib/api-context";
@@ -62,7 +62,11 @@ export function TenantLoginClient() {
     if (searchParams.get("sesion") === "expirada") {
       setError("Tu sesión expiró. Vuelve a iniciar sesión.");
     }
-  }, [searchParams]);
+    const subParam = searchParams.get("subdomain")?.trim().toLowerCase();
+    if (subParam) {
+      setSubdomain(subParam);
+    }
+  }, [searchParams, setSubdomain]);
 
   useEffect(() => {
     if (session) {
@@ -211,7 +215,7 @@ export function TenantLoginClient() {
                 autoComplete="current-password"
               />
             </label>
-            {needsSubdomainField && (
+            {needsSubdomainField && isKnxLocalDev() && (
               <p className="text-xs text-slate-500">
                 En local también puedes abrir{" "}
                 <code className="text-emerald-300/90">sportza.localhost:3000</code>.

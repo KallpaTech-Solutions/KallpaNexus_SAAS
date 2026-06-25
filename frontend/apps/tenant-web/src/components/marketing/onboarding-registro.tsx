@@ -3,6 +3,7 @@
 import { KallpaPublicFooter, KallpaPublicHeader } from "@/components/marketing/kallpa-public-chrome";
 import { fetchDniOnboarding } from "@/components/marketing/landing-plans-section";
 import { NEXUS_VERTICALS, sportTenantPublicPath, type NexusVerticalId } from "@/lib/nexus-verticals";
+import { isKnxLocalDev, tenantStaffLoginUrl } from "@kallpanexus/env";
 import { getApiErrorMessage } from "@kallpanexus/api-client";
 import axios from "axios";
 import { CheckCircle2, Loader2 } from "lucide-react";
@@ -184,11 +185,7 @@ export function OnboardingRegistroForm({
         )}
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <Link
-            href={
-              subFinal
-                ? `http://${subFinal}.localhost:${typeof window !== "undefined" ? window.location.port || "3000" : "3000"}/login`
-                : "/login"
-            }
+            href={subFinal ? tenantStaffLoginUrl(subFinal) : "/login"}
             className="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700"
           >
             Ir al login del panel
@@ -202,7 +199,7 @@ export function OnboardingRegistroForm({
             </Link>
           )}
         </div>
-        {subFinal && (
+        {subFinal && isKnxLocalDev() && (
           <p className="mt-4 text-xs text-slate-500">
             En local abre{" "}
             <code className="text-emerald-800">

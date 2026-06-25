@@ -224,8 +224,7 @@ export function LandingPage() {
             <div className="rounded-[30px] bg-gradient-to-br from-blue-600 to-blue-800 px-6 py-16 text-center text-white sm:px-12">
               <h2 className="text-3xl font-bold sm:text-4xl">Impulsa tu negocio con Kallpa Nexus</h2>
               <p className="mx-auto mt-4 max-w-2xl text-blue-100">
-                Registra tu complejo con Nexus Sport, o contáctanos para una demo. La consola Kallpa
-                administra tenants y empresas que contrataron el servicio.
+                Registra tu complejo con Nexus Sport o contáctanos para una demo guiada.
               </p>
               <div className="mt-8 flex flex-wrap justify-center gap-3">
                 <Link

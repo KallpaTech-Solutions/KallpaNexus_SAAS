@@ -1,11 +1,8 @@
 "use client";
 
-import { getAdminWebUrl } from "@kallpanexus/env";
 import { useAuthStore } from "@/lib/auth-store";
 import Link from "next/link";
 import { useEffect } from "react";
-
-const ADMIN_URL = getAdminWebUrl();
 
 /** Gerente/staff logueado: acceso rápido sin quitar la landing pública. */
 export function LandingStaffBanner() {
@@ -44,14 +41,6 @@ export function LandingStaffBanner() {
           >
             Ir al panel operativo
           </Link>
-          <a
-            href={ADMIN_URL}
-            className="rounded-lg px-3 py-1.5 text-slate-600 hover:text-blue-700"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Consola Kallpa
-          </a>
         </div>
       </div>
     </div>

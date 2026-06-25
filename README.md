@@ -199,7 +199,7 @@ Si regeneras el token en el panel Decolecta, actualiza la misma variable y reini
 - **Start Command:** `npm run start --workspace=tenant-web`
 - **Health Check Path:** `/health` (respuesta `OK`) o vacío (`/`)
 
-**Variables:** `NODE_VERSION=20`, `KNX_API_URL=https://TU-API.onrender.com`, `NEXT_PUBLIC_APP_URL=https://TU-TENANT.onrender.com`, `NEXT_PUBLIC_ADMIN_URL=https://TU-ADMIN.onrender.com/login`  
+**Variables:** `NODE_VERSION=20`, `KNX_API_URL=https://TU-API.onrender.com`, `NEXT_PUBLIC_APP_URL=https://kallpanexus.page`, `NEXT_PUBLIC_ADMIN_URL=https://admin.kallpanexus.page/login`  
 `NEXT_PUBLIC_*` deben existir **antes del build** (Render → Environment → marcar disponibles en build si aplica).
 
 ### admin-web — Render (Node)
@@ -211,7 +211,7 @@ Si regeneras el token en el panel Decolecta, actualiza la misma variable y reini
 - **Start Command:** `npm run start --workspace=admin-web`
 - **Health Check Path:** `/health`
 
-**Variables:** `NODE_VERSION=20`, `KNX_API_URL`, `NEXT_PUBLIC_APP_URL=https://TU-ADMIN.onrender.com`, `NEXT_PUBLIC_TENANT_WEB_URL=https://TU-TENANT.onrender.com`
+**Variables:** `NODE_VERSION=20`, `KNX_API_URL`, `NEXT_PUBLIC_APP_URL=https://admin.kallpanexus.page`, `NEXT_PUBLIC_TENANT_WEB_URL=https://kallpanexus.page`
 
 ### tenant-web — variables (referencia)
 

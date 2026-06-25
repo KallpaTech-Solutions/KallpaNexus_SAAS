@@ -1,7 +1,4 @@
-import { getAdminWebUrl } from "@kallpanexus/env";
 import Link from "next/link";
-
-const ADMIN_URL = getAdminWebUrl();
 
 export function KallpaPublicHeader() {
   return (
@@ -34,14 +31,6 @@ export function KallpaPublicHeader() {
           >
             Acceso negocio
           </Link>
-          <a
-            href={ADMIN_URL}
-            target="_blank"
-            rel="noreferrer"
-            className="hidden rounded-lg px-3 py-2 text-sm font-medium text-slate-500 hover:text-blue-600 lg:inline"
-          >
-            Consola Kallpa
-          </a>
           <Link
             href="/registrar?servicio=sport"
             className="rounded-[10px] bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-blue-700"
@@ -70,9 +59,6 @@ export function KallpaPublicFooter() {
           <Link href="/registrar?servicio=sport" className="hover:text-white">
             Registrarse
           </Link>
-          <a href={ADMIN_URL} target="_blank" rel="noreferrer" className="hover:text-white">
-            Administración plataforma
-          </a>
         </div>
         <p className="mt-8 text-xs text-white/60">
           © {new Date().getFullYear()} Kallpa Nexus. Todos los derechos reservados.

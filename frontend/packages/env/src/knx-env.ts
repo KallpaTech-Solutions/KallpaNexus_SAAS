@@ -66,15 +66,53 @@ export function getAdminApiClientBaseUrl(): string {
 
 export function getTenantWebUrl(): string {
   return trimSlash(
-    readEnv("NEXT_PUBLIC_TENANT_WEB_URL") ?? KNX_DEV_DEFAULTS.tenantWebUrl
+    readEnv("NEXT_PUBLIC_TENANT_WEB_URL") ??
+      readEnv("NEXT_PUBLIC_APP_URL") ??
+      KNX_DEV_DEFAULTS.tenantWebUrl
   );
 }
 
-export function getAdminWebUrl(): string {
-  return trimSlash(
-    readEnv("NEXT_PUBLIC_ADMIN_URL") ??
+/**
+ * URL de login del panel staff para un subdominio (prod: sub.dominio; dev: sub.localhost).
+ */
+export function tenantStaffLoginUrl(subdomain: string): string {
+  const sub = subdomain.trim().toLowerCase();
+  const base = getTenantWebUrl();
+  try {
+    const u = new URL(base);
+    if (u.hostname === "localhost" || u.hostname.endsWith(".localhost")) {
+      return `${tenantPanelUrlForSubdomain(sub)}/login`;
+    }
+  } catch {
+    /* usar login global con query */
+  }
+  return `${trimSlash(base)}/login?subdomain=${encodeURIComponent(sub)}`;
+}
+
+/** true en localhost / *.localhost (p. ej. sportza.localhost). */
+export function isKnxLocalDev(): boolean {
+  if (typeof window !== "undefined") {
+    const h = window.location.hostname;
+    return h === "localhost" || h === "127.0.0.1" || h.endsWith(".localhost");
+  }
+  return process.env.NODE_ENV === "development";
+}
+
+/**
+ * Consola plataforma (admin-web). En producción exige NEXT_PUBLIC_ADMIN_URL en el build.
+ * No usar para enlaces públicos en la landing; solo herramientas internas / dev.
+ */
+export function getAdminWebUrl(): string | undefined {
+  const fromEnv = readEnv("NEXT_PUBLIC_ADMIN_URL");
+  if (fromEnv) {
+    return trimSlash(fromEnv);
+  }
+  if (process.env.NODE_ENV !== "production") {
+    return trimSlash(
       `${KNX_DEV_DEFAULTS.adminWebUrl}${KNX_DEV_DEFAULTS.adminLoginPath}`
-  );
+    );
+  }
+  return undefined;
 }
 
 /** Solo desarrollo: subdominio tenant cuando no hay `{sub}.localhost`. */

@@ -8,6 +8,8 @@ export {
   getKnxPublicApiUrl,
   getTenantApiClientBaseUrl,
   getTenantWebUrl,
+  isKnxLocalDev,
   tenantPanelUrlForSubdomain,
   tenantPublicSportUrl,
+  tenantStaffLoginUrl,
 } from "./knx-env";
