@@ -67,6 +67,15 @@ var app = builder.Build();
 
 app.MapGet("/healthz", () => Results.Ok(new { status = "ok" }));
 
+app.MapGet("/", () =>
+    Results.Ok(new
+    {
+        service = "Kallpa Nexus API",
+        status = "ok",
+        healthCheck = "/healthz",
+        api = "/api",
+    }));
+
 // --- 2. CONFIGURACIÓN DEL PIPELINE (EL ORDEN IMPORTA) ---
 
 if (app.Environment.IsDevelopment())

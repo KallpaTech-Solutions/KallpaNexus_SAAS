@@ -17,7 +17,7 @@ namespace KallpaNexus.API.Middleware
 
         public async Task InvokeAsync(HttpContext context, MasterDbContext masterDb, ITenantProvider tenantProvider)
         {
-            if (context.Request.Path.StartsWithSegments("/healthz"))
+            if (IsInfrastructurePath(context.Request.Path))
             {
                 await _next(context);
                 return;
@@ -57,5 +57,8 @@ namespace KallpaNexus.API.Middleware
             // Seguir con el siguiente middleware en la tubería
             await _next(context);
         }
+
+        private static bool IsInfrastructurePath(PathString path) =>
+            path.StartsWithSegments("/healthz") || path == "/";
     }
  }
