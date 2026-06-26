@@ -74,6 +74,17 @@ public class PlatformSolicitudesContratoController : ControllerBase
         return Ok(items);
     }
 
+    [HttpGet("pendientes/count")]
+    [HasPermission(PermisosApp.PlatformEmpresasVer)]
+    public async Task<IActionResult> ContarPendientes()
+    {
+        var pendientes = await _masterDb.SolicitudesContratoPlan
+            .AsNoTracking()
+            .CountAsync(s => s.Estado == EstadoSolicitudContratoPlan.Pendiente);
+
+        return Ok(new { pendientes });
+    }
+
     [HttpGet("{id:guid}")]
     [HasPermission(PermisosApp.PlatformEmpresasVer)]
     public async Task<IActionResult> Obtener(Guid id)

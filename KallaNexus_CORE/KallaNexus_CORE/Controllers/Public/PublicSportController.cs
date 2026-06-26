@@ -10,6 +10,8 @@ using KallpaNexus.Domain.Modulos.Sport.Entities;
 using KallpaNexus.Domain.Modulos.Sport.Enums;
 using KallpaNexus.Infrastructure.Integraciones;
 using KallpaNexus.Infrastructure.Persistence;
+using KallpaNexus.Infrastructure.Tenancy;
+using KallpaNexus.Domain.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,15 +23,21 @@ namespace KallpaNexus.API.Controllers.Public;
 public class PublicSportController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
+    private readonly MasterDbContext _masterDb;
+    private readonly ITenantProvider _tenantProvider;
     private readonly ConsultasIntegracionService _consultas;
     private readonly TenantWebMediaService _mediaWeb;
 
     public PublicSportController(
         ApplicationDbContext context,
+        MasterDbContext masterDb,
+        ITenantProvider tenantProvider,
         ConsultasIntegracionService consultas,
         TenantWebMediaService mediaWeb)
     {
         _context = context;
+        _masterDb = masterDb;
+        _tenantProvider = tenantProvider;
         _consultas = consultas;
         _mediaWeb = mediaWeb;
     }
@@ -66,12 +74,27 @@ public class PublicSportController : ControllerBase
     {
         var cfg = await ObtenerConfigAsync();
         var activa = cfg?.ReservaWebActiva ?? false;
+        if (activa)
+        {
+            activa = await ReservaWebPermitidaPlataformaAsync();
+        }
 
         var sucursalesRaw = await _context.Sucursales
             .AsNoTracking()
             .Where(s => s.Activa)
             .OrderBy(s => s.Nombre)
-            .Select(s => new { s.Id, s.Nombre, s.Ciudad, s.Direccion, s.Latitud, s.Longitud, s.EnlaceGoogleMaps })
+            .Select(s => new
+            {
+                s.Id,
+                s.Nombre,
+                s.Ciudad,
+                s.Direccion,
+                s.Telefono,
+                s.TelefonoWhatsApp,
+                s.Latitud,
+                s.Longitud,
+                s.EnlaceGoogleMaps,
+            })
             .ToListAsync();
 
         var slugsAsignados = new List<(Guid Id, string Slug)>();
@@ -93,6 +116,8 @@ public class PublicSportController : ControllerBase
                 s.Nombre,
                 s.Ciudad,
                 s.Direccion,
+                telefono = s.Telefono,
+                telefonoWhatsApp = SportTelefonoHelper.SoloDigitos(s.TelefonoWhatsApp),
                 latitud = s.Latitud,
                 longitud = s.Longitud,
                 enlaceGoogleMaps = s.EnlaceGoogleMaps,
@@ -115,6 +140,7 @@ public class PublicSportController : ControllerBase
         {
             slug = tenantSlug.Trim().ToLowerInvariant(),
             nombreComercial = nombre,
+            telefonoWhatsAppNegocio = SportTelefonoHelper.SoloDigitos(cfg?.TelefonoWhatsAppNegocio),
             tituloLanding,
             mensajeLanding,
             imagenHeroUrl = cfg?.ImagenHeroRuta,
@@ -190,6 +216,16 @@ public class PublicSportController : ControllerBase
         if (!await ReservaWebHabilitadaAsync())
         {
             return NotFound(new { error = "ReservaWebInactiva", mensaje = "Reservas web no disponibles." });
+        }
+
+        var tenantId = _tenantProvider.GetTenantId();
+        if (tenantId is { } tid)
+        {
+            await TenantMediosPagoSeeder.EnsureDefaultsAsync(_context, tid);
+        }
+        else
+        {
+            await TenantMediosPagoSeeder.AlinearVisibleEnWebPagablesAsync(_context);
         }
 
         string? telefonoWhatsAppSucursal = null;
@@ -716,7 +752,29 @@ public class PublicSportController : ControllerBase
     private async Task<bool> ReservaWebHabilitadaAsync()
     {
         var cfg = await ObtenerConfigAsync();
-        return cfg is { ReservaWebActiva: true };
+        if (cfg is not { ReservaWebActiva: true })
+        {
+            return false;
+        }
+
+        return await ReservaWebPermitidaPlataformaAsync();
+    }
+
+    private async Task<bool> ReservaWebPermitidaPlataformaAsync()
+    {
+        var tenantId = _tenantProvider.GetTenantId();
+        if (!tenantId.HasValue)
+        {
+            return true;
+        }
+
+        var permitida = await _masterDb.Tenants
+            .AsNoTracking()
+            .Where(t => t.Id == tenantId.Value)
+            .Select(t => (bool?)t.ClienteEmpresa.ReservaWebPermitida)
+            .FirstOrDefaultAsync();
+
+        return permitida is not false;
     }
 
     private static string? ExtraerQrUrlMedio(string? configuracionIntegracionJson)

@@ -28,6 +28,7 @@ public static class PlanSaaSCicloHelper
         empresa.PlanSaaSId = plan.Id;
         empresa.ProximoPago = CalcularFinCiclo(plan, desde);
         empresa.Estado = EsPlanDemo(plan) ? EstadoSuscripcion.Demo : EstadoSuscripcion.Activo;
+        empresa.RestablecerLimitesPersonalizados();
     }
 
     /// <summary>Días hasta fin de demo o próxima renovación mensual (0 = vence hoy, negativo = vencido).</summary>

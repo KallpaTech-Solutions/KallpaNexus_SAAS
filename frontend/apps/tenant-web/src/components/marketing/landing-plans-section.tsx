@@ -2,7 +2,7 @@
 
 import { NEXUS_VERTICALS, type NexusVerticalId } from "@/lib/nexus-verticals";
 import { formatMoneyPEN } from "@kallpanexus/shared";
-import type { DniConsultaResult } from "@kallpanexus/types";
+import type { DniConsultaResult, RucConsultaResult } from "@kallpanexus/types";
 import axios from "axios";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
@@ -174,6 +174,19 @@ export async function fetchDniOnboarding(numero: string): Promise<DniConsultaRes
   try {
     const { data } = await axios.get<DniConsultaResult>(
       `/api/onboarding/consultar-dni?numero=${encodeURIComponent(digits)}`
+    );
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchRucOnboarding(numero: string): Promise<RucConsultaResult | null> {
+  const digits = numero.replace(/\D/g, "");
+  if (digits.length !== 11) return null;
+  try {
+    const { data } = await axios.get<RucConsultaResult>(
+      `/api/onboarding/consultar-ruc?numero=${encodeURIComponent(digits)}`
     );
     return data;
   } catch {

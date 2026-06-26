@@ -19,6 +19,10 @@ export type StoredTenantSession = {
   accesoTodasSucursales?: boolean;
   sucursales?: StaffSucursalAcceso[];
   sucursalActivaId?: string | null;
+  /** Marca del negocio (tenant), visible al público. */
+  nombreComercialNegocio?: string | null;
+  /** Nombre comercial de la empresa pagadora. */
+  nombreEmpresa?: string | null;
 };
 
 export {

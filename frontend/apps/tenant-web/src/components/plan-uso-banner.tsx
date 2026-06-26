@@ -38,13 +38,18 @@ export function PlanUsoBanner({
   const { plan, uso, estado } = data;
   const limS = plan.limiteSucursales;
   const limU = plan.limiteUsuariosStaff;
+  const limC = plan.limiteCanchas ?? 0;
   const sucursalesTexto =
     limS > 0 ? `${uso.sucursales} / ${limS} sucursales` : `${uso.sucursales} sucursales`;
   const staffTexto =
     limU > 0 ? `${uso.usuariosStaff} / ${limU} usuarios staff` : `${uso.usuariosStaff} staff`;
+  const canchasUso = uso.canchas ?? 0;
+  const canchasTexto =
+    limC > 0 ? `${canchasUso} / ${limC} canchas` : `${canchasUso} canchas`;
 
   const cercaLimiteS = limS > 0 && uso.sucursales >= limS;
   const cercaLimiteU = limU > 0 && uso.usuariosStaff >= limU;
+  const cercaLimiteC = limC > 0 && canchasUso >= limC;
 
   const esDemo = plan.precioMensual <= 0 || data.tipoCiclo === "Demo";
   const cuentaTexto = textoCuentaRegresivaPlan(data.diasRestantesCiclo, esDemo);
@@ -102,6 +107,14 @@ export function PlanUsoBanner({
             {sucursalesTexto}
             <span className="mx-2">·</span>
             {staffTexto}
+            {(limC > 0 || canchasUso > 0) && (
+              <>
+                <span className="mx-2">·</span>
+                <span className={cercaLimiteC ? "font-medium text-amber-800" : undefined}>
+                  {canchasTexto}
+                </span>
+              </>
+            )}
           </>
         )}
       </p>

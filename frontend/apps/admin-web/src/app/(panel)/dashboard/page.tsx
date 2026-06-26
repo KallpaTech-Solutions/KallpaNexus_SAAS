@@ -6,8 +6,9 @@ import { platformUi } from "@/lib/platform-ui";
 import { tenantPanelLoginUrl, tenantPublicUrl } from "@/lib/platform-nav";
 import { severidadCuentaRegresiva, textoCuentaRegresivaPlan } from "@kallpanexus/shared";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
+import { Building2, CalendarDays, Layers, Loader2, Users } from "lucide-react";
 import Link from "next/link";
+import type { LucideIcon } from "lucide-react";
 
 function num(data: Record<string, unknown>, camel: string, pascal: string): number {
   const v = data[camel] ?? data[pascal];
@@ -34,6 +35,26 @@ function mapAlerta(row: Record<string, unknown>) {
   };
 }
 
+function KpiCard({
+  label,
+  value,
+  icon: Icon,
+}: {
+  label: string;
+  value: number;
+  icon: LucideIcon;
+}) {
+  return (
+    <div className={platformUi.kpiCard}>
+      <div className={platformUi.kpiCardHead}>
+        <p className={platformUi.kpiLabel}>{label}</p>
+        <Icon className={`h-4 w-4 ${platformUi.kpiIcon}`} aria-hidden />
+      </div>
+      <p className={platformUi.kpiValue}>{value}</p>
+    </div>
+  );
+}
+
 export default function PlatformDashboardPage() {
   const api = usePlatformApi();
   const session = usePlatformAuthStore((s) => s.session);
@@ -52,10 +73,26 @@ export default function PlatformDashboardPage() {
 
   const kpis = q.data
     ? [
-        { label: "Empresas pagadoras", value: num(d, "totalEmpresasPagadoras", "TotalEmpresasPagadoras") },
-        { label: "Tenants activos", value: num(d, "totalTenantsActivos", "TotalTenantsActivos") },
-        { label: "Staff negocios", value: num(d, "totalStaffNegociosActivos", "TotalStaffNegociosActivos") },
-        { label: "Reservas Sport", value: num(d, "totalReservasSport_Global", "TotalReservasSport_Global") },
+        {
+          label: "Empresas pagadoras",
+          value: num(d, "totalEmpresasPagadoras", "TotalEmpresasPagadoras"),
+          icon: Building2,
+        },
+        {
+          label: "Tenants activos",
+          value: num(d, "totalTenantsActivos", "TotalTenantsActivos"),
+          icon: Layers,
+        },
+        {
+          label: "Staff negocios",
+          value: num(d, "totalStaffNegociosActivos", "TotalStaffNegociosActivos"),
+          icon: Users,
+        },
+        {
+          label: "Reservas Sport",
+          value: num(d, "totalReservasSport_Global", "TotalReservasSport_Global"),
+          icon: CalendarDays,
+        },
       ]
     : [];
 
@@ -64,37 +101,41 @@ export default function PlatformDashboardPage() {
   const primerNombre = session?.nombreCompleto?.split(" ")[0] ?? "Admin";
 
   return (
-    <div>
-      <div className="flex flex-wrap items-end justify-between gap-4">
+    <div className="space-y-8">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className={platformUi.pageTitleHero}>
             Bienvenido, {primerNombre}
           </h1>
-          <p className={platformUi.pageSubtitle}>Centro de control de Kallpa Nexus</p>
+          <p className={platformUi.pageSubtitle}>
+            Vista general de la plataforma — empresas, tenants y operación
+          </p>
         </div>
-        <Link href="/tenants" className={platformUi.btnPrimary}>
+        <Link href="/tenants" className={`${platformUi.btnPrimary} shrink-0`}>
           + Nuevo tenant
         </Link>
       </div>
 
       {q.isLoading && (
-        <p className={`mt-8 flex items-center gap-2 ${platformUi.textMuted}`}>
+        <p className={`flex items-center gap-2 ${platformUi.textMuted}`}>
           <Loader2 className="h-4 w-4 animate-spin" /> Cargando…
         </p>
       )}
 
       {q.data && (
         <>
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {kpis.map((kpi) => (
-              <div key={kpi.label} className={platformUi.card}>
-                <p className={platformUi.kpiLabel}>{kpi.label}</p>
-                <p className={platformUi.kpiValue}>{kpi.value}</p>
-              </div>
+              <KpiCard
+                key={kpi.label}
+                label={kpi.label}
+                value={kpi.value}
+                icon={kpi.icon}
+              />
             ))}
           </div>
 
-          <div className="mt-8 grid gap-6 lg:grid-cols-[2fr_1fr]">
+          <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
             <section className={platformUi.card}>
               <h2 className={platformUi.sectionTitle}>Negocios registrados</h2>
               <div className="mt-4 space-y-3">
@@ -157,8 +198,7 @@ export default function PlatformDashboardPage() {
               <section className={platformUi.card}>
                 <h2 className={platformUi.sectionTitle}>Alertas de plan</h2>
                 <p className={`mt-1 text-xs ${platformUi.textMuted}`}>
-                  Cuenta regresiva según fin de demo o renovación mensual (
-                  <code className={platformUi.textBody}>ProximoPago</code>).
+                  Próximo ciclo de facturación o fin de demo por empresa.
                 </p>
                 <ul className="mt-4 space-y-2">
                   {alertas.map((a) => (
@@ -212,7 +252,7 @@ export default function PlatformDashboardPage() {
           </div>
 
           {recientes.length > 0 && (
-            <section className="mt-8">
+            <section>
               <h2 className={platformUi.sectionTitle}>Contacto rápido</h2>
               <div className={platformUi.tableWrap}>
                 <table className="min-w-full text-left text-sm">

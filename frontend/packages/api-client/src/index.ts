@@ -810,6 +810,8 @@ export type PlatformDashboardResumen = {
 export type PlatformEmpresaListItem = {
   id: string;
   Id?: string;
+  tipo?: string | number;
+  Tipo?: string | number;
   documentoFiscal?: string;
   DocumentoFiscal?: string;
   nombreComercial?: string;
@@ -914,6 +916,7 @@ export function normalizePlatformEmpresa(row: PlatformEmpresaListItem) {
   const r = row as Record<string, unknown>;
   return {
     id: String(pick<string>(r, "id", "Id") ?? ""),
+    tipo: pick<string | number>(r, "tipo", "Tipo"),
     documentoFiscal: pick<string>(r, "documentoFiscal", "DocumentoFiscal") ?? "",
     nombreComercial: pick<string>(r, "nombreComercial", "NombreComercial") ?? "",
     razonSocial: pick<string>(r, "razonSocial", "RazonSocial") ?? "",
@@ -967,6 +970,10 @@ export function createPlatformServices(client: AxiosInstance) {
           .then((r) => r.data),
       eliminarStaffNegocio: (staffId: string) =>
         client.delete(`/api/platform/operaciones/staff-negocios/${staffId}`).then((r) => r.data),
+      restablecerPasswordStaffNegocio: (staffId: string) =>
+        client
+          .post(`/api/platform/operaciones/staff-negocios/${staffId}/restablecer-password`)
+          .then((r) => r.data),
       permisosSportCatalogo: () =>
         client.get<{ codigo?: string; Codigo?: string }[]>("/api/platform/operaciones/permisos-sport-catalogo").then((r) => r.data),
       sucursalesTenant: (tenantId: string) =>
@@ -1011,6 +1018,20 @@ export function createPlatformServices(client: AxiosInstance) {
         }
       ) => client.put(`/api/platform/empresas/${id}`, body).then((r) => r.data),
       cancelar: (id: string) => client.delete(`/api/platform/empresas/${id}`).then((r) => r.data),
+      eliminarDefinitivo: (id: string, confirmacion: string) =>
+        client
+          .post(`/api/platform/empresas/${id}/eliminar-definitivo`, { confirmacion })
+          .then((r) => r.data),
+      actualizarLimites: (
+        id: string,
+        body: {
+          limiteSucursalesOverride?: number;
+          limiteUsuariosStaffOverride?: number;
+          limiteCanchasOverride?: number;
+          precioMensualAcordado?: number;
+          reservaWebPermitida?: boolean;
+        }
+      ) => client.put(`/api/platform/empresas/${id}/limites`, body).then((r) => r.data),
     },
     tenants: {
       list: (params?: { clienteEmpresaId?: string; soloActivos?: boolean }) =>
@@ -1025,6 +1046,10 @@ export function createPlatformServices(client: AxiosInstance) {
         nombreSucursalPrincipal?: string;
         direccionSucursal?: string;
       }) => client.post("/api/platform/tenants", body).then((r) => r.data),
+      configurarReservaWeb: (tenantId: string, activa: boolean) =>
+        client
+          .put(`/api/platform/tenants/${tenantId}/reserva-web`, { activa })
+          .then((r) => r.data),
     },
     planes: {
       list: (params?: { soloActivos?: boolean }) =>
@@ -1041,6 +1066,7 @@ export function createPlatformServices(client: AxiosInstance) {
           precioMensual?: number;
           limiteSucursales?: number;
           limiteUsuariosStaff?: number;
+          limiteCanchas?: number;
           soportaModuloSport?: boolean;
           soportaModuloStay?: boolean;
           soportaModuloCare?: boolean;
@@ -1049,8 +1075,24 @@ export function createPlatformServices(client: AxiosInstance) {
           diasDuracionDemo?: number | null;
         }
       ) => client.put(`/api/platform/planes/${id}`, body).then((r) => r.data),
+      crear: (body: {
+        nombre: string;
+        precioMensual: number;
+        limiteSucursales?: number;
+        limiteUsuariosStaff?: number;
+        limiteCanchas?: number;
+        soportaModuloSport?: boolean;
+        soportaModuloStay?: boolean;
+        soportaModuloCare?: boolean;
+        soportaFidelizacionPuntos?: boolean;
+        diasDuracionDemo?: number | null;
+      }) => client.post("/api/platform/planes", body).then((r) => r.data),
     },
     solicitudesContrato: {
+      contarPendientes: () =>
+        client
+          .get<{ pendientes: number }>("/api/platform/solicitudes-contrato/pendientes/count")
+          .then((r) => r.data.pendientes),
       list: (estado?: string) =>
         client
           .get("/api/platform/solicitudes-contrato", {

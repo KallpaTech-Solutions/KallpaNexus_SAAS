@@ -19,6 +19,7 @@ public static class SaaSPlanesSeeder
                 PrecioMensual = 149m,
                 LimiteSucursales = 10,
                 LimiteUsuariosStaff = 15,
+                LimiteCanchas = 50,
                 SoportaModuloSport = true,
                 SoportaModuloStay = false,
                 SoportaModuloCare = false,

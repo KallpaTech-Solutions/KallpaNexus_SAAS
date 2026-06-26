@@ -10,14 +10,14 @@ namespace KallpaNexus.Infrastructure.Tenancy;
 /// </summary>
 public static class TenantMediosPagoSeeder
 {
-    private static readonly (string Nombre, TipoMedioPago Tipo, bool VoucherOnline, bool SinVoucherPresencial, int Orden)[] Defaults =
+    private static readonly (string Nombre, TipoMedioPago Tipo, bool VoucherOnline, bool SinVoucherPresencial, bool VisibleWeb, int Orden)[] Defaults =
     [
-        ("Efectivo en caja", TipoMedioPago.Efectivo, false, true, 1),
-        ("Transferencia bancaria", TipoMedioPago.Transferencia, true, true, 2),
-        ("Yape", TipoMedioPago.Yape, true, true, 3),
-        ("Plin", TipoMedioPago.Plin, true, true, 4),
-        ("Izipay (POS)", TipoMedioPago.Izipay, true, true, 5),
-        ("Pasarela en línea (futuro)", TipoMedioPago.Pasarela, true, false, 99),
+        ("Efectivo en caja", TipoMedioPago.Efectivo, false, true, false, 1),
+        ("Transferencia bancaria", TipoMedioPago.Transferencia, true, true, true, 2),
+        ("Yape", TipoMedioPago.Yape, true, true, true, 3),
+        ("Plin", TipoMedioPago.Plin, true, true, true, 4),
+        ("Izipay (POS)", TipoMedioPago.Izipay, true, true, false, 5),
+        ("Pasarela en línea (futuro)", TipoMedioPago.Pasarela, true, false, false, 99),
     ];
 
     public static async Task EnsureDefaultsAsync(ApplicationDbContext appDb, Guid tenantId)
@@ -52,6 +52,7 @@ public static class TenantMediosPagoSeeder
                 RequiereVoucherOnline = d.VoucherOnline,
                 PermiteSinVoucherPresencial = d.SinVoucherPresencial,
                 EsPasarelaExterna = d.Tipo == TipoMedioPago.Pasarela,
+                VisibleEnWeb = d.VisibleWeb,
                 Orden = d.Orden,
                 Activo = d.Tipo != TipoMedioPago.Pasarela,
             });
@@ -62,6 +63,29 @@ public static class TenantMediosPagoSeeder
         {
             await appDb.SaveChangesAsync();
         }
+
+        await AlinearVisibleEnWebPagablesAsync(appDb);
+    }
+
+    /// <summary>Medios Yape/Plin/transferencia creados antes del flag VisibleEnWeb.</summary>
+    public static async Task AlinearVisibleEnWebPagablesAsync(ApplicationDbContext appDb)
+    {
+        var tiposWeb = new[] { TipoMedioPago.Transferencia, TipoMedioPago.Yape, TipoMedioPago.Plin };
+        var medios = await appDb.MediosPago
+            .Where(m => tiposWeb.Contains(m.Tipo) && m.Activo && !m.EsPasarelaExterna && !m.VisibleEnWeb)
+            .ToListAsync();
+
+        if (medios.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var m in medios)
+        {
+            m.VisibleEnWeb = true;
+        }
+
+        await appDb.SaveChangesAsync();
     }
 
     private static async Task DeduplicateByNombreAsync(ApplicationDbContext appDb)

@@ -6,6 +6,7 @@ import {
   googleMapsPinFromEnlace,
 } from "@/lib/google-maps-link";
 import { sedeSlugFor, tenantSedeHref } from "@/lib/public-brand";
+import { etiquetaTelefonoCliente } from "@kallpanexus/shared";
 import { ChevronDown, Loader2, MapPin, Navigation } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -16,6 +17,8 @@ type Sede = {
   nombre: string;
   ciudad?: string | null;
   direccion: string;
+  telefono?: string | null;
+  telefonoWhatsApp?: string | null;
   enlaceGoogleMaps?: string | null;
   latitud?: number | null;
   longitud?: number | null;
@@ -39,13 +42,16 @@ export function PublicSedesUbicacion({
   if (!sucursales.length) return null;
 
   return (
-    <section id="sedes" className="border-b border-slate-200 bg-white py-8">
+    <section id="sedes" className="scroll-mt-24 border-b border-slate-200 bg-white py-10 sm:py-12">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <h2 className="text-lg font-bold text-slate-900 sm:text-xl">
-          {variasSedes ? "Nuestras sedes" : "Ubicación"}
+        <p className="text-xs font-semibold uppercase tracking-widest text-emerald-700">Ubicación</p>
+        <h2 className="mt-1 text-xl font-bold text-slate-900 sm:text-2xl">
+          {variasSedes ? "Nuestras sedes" : "Dónde estamos"}
         </h2>
-        <p className="mt-0.5 text-xs text-slate-600 sm:text-sm">
-          Dirección y mapa. {variasSedes ? "Elige sede para ver canchas." : "Reserva abajo."}
+        <p className="mt-2 max-w-xl text-sm text-slate-600">
+          {variasSedes
+            ? "Cambia de sede para ver canchas y horarios de cada ubicación."
+            : "Dirección, mapa e indicaciones para llegar."}
         </p>
 
         <div
@@ -61,7 +67,7 @@ export function PublicSedesUbicacion({
             const href = tenantSedeHref(
               tenantSlug,
               { id: s.id, nombre: s.nombre, slug: s.slug ?? sedeSlugFor(s) },
-              "canchas",
+              "reservar",
               { omitQueryIfOnlySede: !variasSedes }
             );
             const indicaciones = googleMapsComoLlegarUrl({
@@ -101,6 +107,19 @@ export function PublicSedesUbicacion({
                     <MapPin className="mr-1 inline h-3.5 w-3.5 shrink-0 text-emerald-600" />
                     {s.direccion}
                   </p>
+                  {(s.telefono?.trim() || s.telefonoWhatsApp?.trim()) && (
+                    <p className="mt-1 text-xs text-slate-600">
+                      {s.telefono?.trim() && (
+                        <span>Tel. {etiquetaTelefonoCliente(s.telefono)}</span>
+                      )}
+                      {s.telefono?.trim() && s.telefonoWhatsApp?.trim() && (
+                        <span className="mx-1 text-slate-300">·</span>
+                      )}
+                      {s.telefonoWhatsApp?.trim() && (
+                        <span>WhatsApp {etiquetaTelefonoCliente(s.telefonoWhatsApp)}</span>
+                      )}
+                    </p>
+                  )}
                   <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
                     {variasSedes && !activa && (
                       <Link

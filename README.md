@@ -23,7 +23,9 @@ dotnet run
 ```
 
 - Swagger (Development): `https://localhost:7110/swagger`
-- Connection strings Supabase: **User Secrets** en `KallaNexus_CORE/KallaNexus_CORE` (no commitear).
+- Connection strings: ver [Base de datos Supabase](#base-de-datos-supabase). En Development tienen **prioridad** User Secrets y variables de entorno sobre `appsettings.Development.json`.
+
+**Error al arrancar en Visual Studio (`Host desconocido` / `SocketException`):** la API no resuelve el `Host=` de la cadena activa. En consola busca `Master DB → Host=...`. Suele ser User Secrets con un host mal escrito o el host directo `db.*.supabase.co` (usa el **Session pooler**). Si quieres Postgres local, borra los secrets de connection string y levanta PostgreSQL en `localhost:5433` con las bases del `appsettings.Development.json`.
 
 ### Frontend
 
@@ -76,12 +78,15 @@ Host=aws-1-us-east-1.pooler.supabase.com;Port=5432;Database=postgres;Username=po
 Migraciones (primera vez o tras pull):
 
 ```powershell
-cd KallaNexus_CORE
-$env:ConnectionStrings__MasterConnection = "..."
-$env:ConnectionStrings__SharedTenantConnection = "..."
-dotnet ef database update --context MasterDbContext --project KallpaNexus.Infrastructure --startup-project KallaNexus_CORE\KallpaNexus.API.csproj
-dotnet ef database update --context ApplicationDbContext --project KallpaNexus.Infrastructure --startup-project KallaNexus_CORE\KallpaNexus.API.csproj
+cd KallaNexus_CORE\KallaNexus_CORE
+dotnet user-secrets init
+dotnet user-secrets set "ConnectionStrings:MasterConnection" "Host=aws-1-us-east-1.pooler.supabase.com;Port=5432;Database=postgres;Username=postgres.TU_REF;Password=TU_PASSWORD;SSL Mode=Require;Trust Server Certificate=true"
+dotnet user-secrets set "ConnectionStrings:SharedTenantConnection" "Host=aws-1-us-east-1.pooler.supabase.com;Port=5432;Database=postgres;Username=postgres.TU_REF;Password=TU_PASSWORD;SSL Mode=Require;Trust Server Certificate=true"
 ```
+
+Plantilla: `KallaNexus_CORE/secrets.example.json` (no commitear passwords reales).
+
+Alternativa **Postgres local** (puerto 5433): elimina las claves `ConnectionStrings:*` de User Secrets para usar `appsettings.Development.json`.
 
 Al arrancar, el API aplica migraciones de **ApplicationDb**; **Master** requiere EF CLI la primera vez.
 

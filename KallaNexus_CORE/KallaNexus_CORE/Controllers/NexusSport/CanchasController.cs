@@ -23,15 +23,18 @@ namespace KallpaNexus.API.Controllers.NexusSport
         private readonly ApplicationDbContext _context;
         private readonly TenantStaffSucursalScopeService _sucursalScope;
         private readonly TenantWebMediaService _media;
+        private readonly TenantSuscripcionService _suscripcion;
 
         public CanchasController(
             ApplicationDbContext context,
             TenantStaffSucursalScopeService sucursalScope,
-            TenantWebMediaService media)
+            TenantWebMediaService media,
+            TenantSuscripcionService suscripcion)
         {
             _context = context;
             _sucursalScope = sucursalScope;
             _media = media;
+            _suscripcion = suscripcion;
         }
 
         [HttpPost]
@@ -53,6 +56,12 @@ namespace KallpaNexus.API.Controllers.NexusSport
             if (errorAlcance != null)
             {
                 return errorAlcance.ToActionResult();
+            }
+
+            var limiteCancha = await _suscripcion.ValidarPuedeAgregarCanchaAsync();
+            if (!limiteCancha.Ok)
+            {
+                return BadRequest(new { error = limiteCancha.Codigo, mensaje = limiteCancha.Mensaje });
             }
 
             var cancha = new Cancha

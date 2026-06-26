@@ -41,6 +41,10 @@ public class MediosPagoController : ControllerBase
         {
             await TenantMediosPagoSeeder.EnsureDefaultsAsync(_context, tid);
         }
+        else
+        {
+            await TenantMediosPagoSeeder.AlinearVisibleEnWebPagablesAsync(_context);
+        }
 
         var items = await _context.MediosPago
             .OrderBy(m => m.Orden)
@@ -115,6 +119,7 @@ public class MediosPagoController : ControllerBase
             RequiereVoucherOnline = request.RequiereVoucherOnline,
             PermiteSinVoucherPresencial = request.PermiteSinVoucherPresencial,
             EsPasarelaExterna = request.EsPasarelaExterna,
+            VisibleEnWeb = request.VisibleEnWeb ?? EsVisibleEnWebPorDefecto(tipo),
             ConfiguracionIntegracionJson = request.ConfiguracionIntegracionJson,
             Orden = request.Orden
         };
@@ -274,6 +279,9 @@ public class MediosPagoController : ControllerBase
         await _context.SaveChangesAsync();
         return Ok(new { Mensaje = "Medio de pago desactivado.", MedioPagoId = medioPagoId });
     }
+
+    private static bool EsVisibleEnWebPorDefecto(TipoMedioPago tipo) =>
+        tipo is TipoMedioPago.Transferencia or TipoMedioPago.Yape or TipoMedioPago.Plin;
 }
 
 public class CrearMedioPagoRequest
@@ -283,6 +291,7 @@ public class CrearMedioPagoRequest
     public bool RequiereVoucherOnline { get; set; } = true;
     public bool PermiteSinVoucherPresencial { get; set; } = true;
     public bool EsPasarelaExterna { get; set; }
+    public bool? VisibleEnWeb { get; set; }
     public string? ConfiguracionIntegracionJson { get; set; }
     public int Orden { get; set; }
 }

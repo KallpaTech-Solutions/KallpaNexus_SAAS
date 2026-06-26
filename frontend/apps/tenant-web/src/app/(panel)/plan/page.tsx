@@ -120,7 +120,7 @@ export default function PlanPage() {
           )}
 
           {data.solicitudPendiente && (
-            <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+            <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
               Tienes una solicitud de plan en revisión:{" "}
               <strong>{data.solicitudPendiente.plan?.nombre}</strong>. Kallpa Nexus te
               contactará para confirmar el contrato.
@@ -152,6 +152,9 @@ export default function PlanPage() {
                     </p>
                     <p className="mt-2 text-xs text-slate-400">
                       Hasta {p.limiteSucursales} sucursales · {p.limiteUsuariosStaff} usuarios staff
+                      {(p.limiteCanchas ?? 0) > 0 && (
+                        <> · {p.limiteCanchas} canchas</>
+                      )}
                       {(p as { esDemo?: boolean }).esDemo &&
                         (p as { diasDuracionDemo?: number }).diasDuracionDemo && (
                           <>

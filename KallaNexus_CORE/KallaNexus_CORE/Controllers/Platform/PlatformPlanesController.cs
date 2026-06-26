@@ -58,6 +58,7 @@ public class PlatformPlanesController : ControllerBase
             PrecioMensual = request.PrecioMensual,
             LimiteSucursales = request.LimiteSucursales,
             LimiteUsuariosStaff = request.LimiteUsuariosStaff,
+            LimiteCanchas = request.LimiteCanchas,
             SoportaModuloSport = request.SoportaModuloSport,
             SoportaModuloStay = request.SoportaModuloStay,
             SoportaModuloCare = request.SoportaModuloCare,
@@ -99,6 +100,11 @@ public class PlatformPlanesController : ControllerBase
         if (request.LimiteUsuariosStaff.HasValue)
         {
             plan.LimiteUsuariosStaff = request.LimiteUsuariosStaff.Value;
+        }
+
+        if (request.LimiteCanchas.HasValue)
+        {
+            plan.LimiteCanchas = Math.Max(0, request.LimiteCanchas.Value);
         }
 
         if (request.SoportaModuloSport.HasValue)
@@ -174,6 +180,7 @@ public class CrearPlanRequest
     public decimal PrecioMensual { get; set; }
     public int LimiteSucursales { get; set; } = 1;
     public int LimiteUsuariosStaff { get; set; } = 3;
+    public int LimiteCanchas { get; set; }
     public bool SoportaModuloSport { get; set; } = true;
     public bool SoportaModuloStay { get; set; }
     public bool SoportaModuloCare { get; set; }
@@ -187,6 +194,7 @@ public class ActualizarPlanRequest
     public decimal? PrecioMensual { get; set; }
     public int? LimiteSucursales { get; set; }
     public int? LimiteUsuariosStaff { get; set; }
+    public int? LimiteCanchas { get; set; }
     public bool? SoportaModuloSport { get; set; }
     public bool? SoportaModuloStay { get; set; }
     public bool? SoportaModuloCare { get; set; }

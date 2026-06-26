@@ -117,7 +117,7 @@ public class TenantSuscripcionService
             return estado;
         }
 
-        var limite = empresa.PlanSaaS.LimiteSucursales;
+        var limite = EmpresaLimitesHelper.LimiteSucursalesPorNegocio(empresa);
         if (limite <= 0)
         {
             return SuscripcionCheck.Success();
@@ -149,7 +149,7 @@ public class TenantSuscripcionService
             return estado;
         }
 
-        var limite = empresa.PlanSaaS.LimiteUsuariosStaff;
+        var limite = EmpresaLimitesHelper.LimiteUsuariosStaff(empresa);
         if (limite <= 0)
         {
             return SuscripcionCheck.Success();
@@ -162,6 +162,41 @@ public class TenantSuscripcionService
                 "LimiteUsuariosStaff",
                 $"Tu plan «{empresa.PlanSaaS.Nombre}» permite hasta {limite} usuario(s) staff en total. " +
                 $"Tienes {uso}. Cambia de plan o desactiva un usuario.");
+        }
+
+        return SuscripcionCheck.Success();
+    }
+
+    public async Task<int> ContarCanchasTenantAsync(CancellationToken ct = default) =>
+        await _appDb.Canchas.CountAsync(c => c.EstaActiva, ct);
+
+    public async Task<SuscripcionCheck> ValidarPuedeAgregarCanchaAsync(CancellationToken ct = default)
+    {
+        var empresa = await ObtenerEmpresaActualAsync(ct);
+        if (empresa?.PlanSaaS == null)
+        {
+            return SuscripcionCheck.Fail("SinEmpresa", "No se encontró la empresa asociada al negocio.");
+        }
+
+        var estado = ValidarEstadoOperacion(empresa);
+        if (!estado.Ok)
+        {
+            return estado;
+        }
+
+        var limite = EmpresaLimitesHelper.LimiteCanchasPorNegocio(empresa);
+        if (limite <= 0)
+        {
+            return SuscripcionCheck.Success();
+        }
+
+        var uso = await ContarCanchasTenantAsync(ct);
+        if (uso >= limite)
+        {
+            return SuscripcionCheck.Fail(
+                "LimiteCanchas",
+                $"Tu contrato permite hasta {limite} cancha(s) activa(s) en este negocio. " +
+                $"Tienes {uso}. Contacta a Kallpa Nexus para ampliar el límite.");
         }
 
         return SuscripcionCheck.Success();

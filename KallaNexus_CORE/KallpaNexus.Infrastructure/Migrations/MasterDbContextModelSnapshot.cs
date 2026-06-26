@@ -45,6 +45,15 @@ namespace KallpaNexus.Infrastructure.Migrations
                     b.Property<int>("Estado")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("LimiteCanchasOverride")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("LimiteSucursalesOverride")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("LimiteUsuariosStaffOverride")
+                        .HasColumnType("integer");
+
                     b.Property<string>("NombreComercial")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -58,8 +67,14 @@ namespace KallpaNexus.Infrastructure.Migrations
                     b.Property<Guid>("PlanSaaSId")
                         .HasColumnType("uuid");
 
+                    b.Property<decimal?>("PrecioMensualAcordado")
+                        .HasColumnType("numeric");
+
                     b.Property<DateTime>("ProximoPago")
                         .HasColumnType("timestamp without time zone");
+
+                    b.Property<bool>("ReservaWebPermitida")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("RazonSocial")
                         .IsRequired()
@@ -126,6 +141,9 @@ namespace KallpaNexus.Infrastructure.Migrations
                         .HasColumnType("integer");
 
                     b.Property<int>("LimiteSucursales")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("LimiteCanchas")
                         .HasColumnType("integer");
 
                     b.Property<int>("LimiteUsuariosStaff")

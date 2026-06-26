@@ -126,6 +126,14 @@ public class TenantAuthController : ControllerBase
         var (sucursales, accesoTodas) = await _staffSucursales.ResolverAccesoAsync(staffId);
         var permisos = await _rbac.ObtenerPermisosStaffAsync(staffId);
 
+        var tenantId = usuario.TenantId;
+        var tenant = await _masterDb.Tenants.AsNoTracking()
+            .FirstOrDefaultAsync(t => t.Id == tenantId);
+        var empresa = tenant == null
+            ? null
+            : await _masterDb.ClientesEmpresas.AsNoTracking()
+                .FirstOrDefaultAsync(c => c.Id == tenant.ClienteEmpresaId);
+
         return Ok(new
         {
             usuario.Id,
@@ -137,7 +145,9 @@ public class TenantAuthController : ControllerBase
             Rol = usuario.RolTenant.Codigo,
             Permisos = permisos,
             accesoTodasSucursales = accesoTodas,
-            sucursales = sucursales.Select(s => new { s.Id, s.Nombre }).ToList()
+            sucursales = sucursales.Select(s => new { s.Id, s.Nombre }).ToList(),
+            nombreComercialNegocio = tenant?.NombreComercialNegocio,
+            nombreEmpresa = empresa?.NombreComercial ?? empresa?.RazonSocial
         });
     }
 
@@ -281,6 +291,8 @@ public class TenantAuthController : ControllerBase
             usuario.NombreCompleto,
             email = usuario.Email,
             subdomain = tenant.Subdomain,
+            nombreComercialNegocio = tenant.NombreComercialNegocio,
+            nombreEmpresa = empresa?.NombreComercial ?? empresa?.RazonSocial,
             Rol = usuario.RolTenant.Codigo,
             permisos,
             debeCambiarPassword = usuario.DebeCambiarPassword,

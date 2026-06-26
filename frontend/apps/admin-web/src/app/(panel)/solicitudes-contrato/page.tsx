@@ -1,5 +1,6 @@
 "use client";
 
+import { PLATFORM_SOLICITUDES_PENDIENTES_QUERY_KEY } from "@/lib/platform-query-keys";
 import { usePlatformApi } from "@/lib/platform-api-context";
 import { usePlatformPermisos } from "@/lib/platform-auth-store";
 import { platformUi } from "@/lib/platform-ui";
@@ -107,6 +108,7 @@ export default function SolicitudesContratoPage() {
       setDetalleId(null);
       setNotas("");
       await qc.invalidateQueries({ queryKey: ["platform-solicitudes-contrato"] });
+      void qc.invalidateQueries({ queryKey: [...PLATFORM_SOLICITUDES_PENDIENTES_QUERY_KEY] });
     },
   });
 
@@ -117,6 +119,15 @@ export default function SolicitudesContratoPage() {
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["platform-solicitudes-contrato"] }),
   });
+
+  function empresaEtiquetas(empresa: SolicitudRow["empresa"]) {
+    const comercial = empresa.nombreComercial.trim();
+    const razon = empresa.razonSocial.trim();
+    const titulo = comercial || razon || "—";
+    const subtitulo =
+      razon && comercial && razon.toLowerCase() !== comercial.toLowerCase() ? razon : null;
+    return { titulo, subtitulo };
+  }
 
   return (
     <div>
@@ -226,46 +237,83 @@ export default function SolicitudesContratoPage() {
       </div>
 
       {detalle && (
-        <div className={platformUi.modalOverlay}>
-          <div className={`${platformUi.modal} max-w-lg`}>
-            <h2 className={platformUi.sectionTitle}>Solicitud de contrato</h2>
-            <dl className="mt-4 space-y-2 text-sm">
-              <div>
-                <dt className={platformUi.textMuted}>Empresa pagadora</dt>
-                <dd className="font-medium text-[var(--p-text)]">{detalle.empresa.razonSocial}</dd>
-                <dd className={platformUi.textBody}>{detalle.empresa.nombreComercial}</dd>
-              </div>
-              <div>
-                <dt className={platformUi.textMuted}>Plan solicitado</dt>
-                <dd className={platformUi.textBody}>{detalle.plan.nombre}</dd>
-              </div>
-              <div>
-                <dt className={platformUi.textMuted}>Gerente / solicitante</dt>
-                <dd className={platformUi.textBody}>
+        <div
+          className={platformUi.modalOverlay}
+          role="presentation"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setDetalleId(null);
+          }}
+        >
+          <div className={`${platformUi.modal} max-w-lg`} role="dialog" aria-modal="true">
+            <div className="platform-modal-header">
+              <h2 className={platformUi.sectionTitle}>Solicitud de contrato</h2>
+              <p className={`mt-1 text-xs ${platformUi.textMuted}`}>
+                {new Date(detalle.createdAt).toLocaleString("es-PE")} · {detalle.estado}
+              </p>
+            </div>
+
+            <div className="platform-modal-body">
+              {(() => {
+                const emp = empresaEtiquetas(detalle.empresa);
+                return (
+                  <section className="platform-modal-section">
+                    <h3 className="platform-modal-section-title">Empresa pagadora</h3>
+                    <p className="font-semibold text-[var(--p-text)]">{emp.titulo}</p>
+                    {emp.subtitulo ? (
+                      <p className={`mt-0.5 text-sm ${platformUi.textMuted}`}>{emp.subtitulo}</p>
+                    ) : null}
+                    <p className={`mt-2 text-xs ${platformUi.textBody}`}>
+                      {detalle.empresa.documentoFiscal}
+                      {detalle.subdomain ? ` · ${detalle.subdomain}.kallpanexus.com` : ""}
+                    </p>
+                    <p className={`text-xs ${platformUi.textMuted}`}>
+                      {detalle.empresa.emailFacturacion}
+                      {detalle.empresa.telefono ? ` · ${detalle.empresa.telefono}` : ""}
+                    </p>
+                  </section>
+                );
+              })()}
+
+              <section className="platform-modal-section">
+                <h3 className="platform-modal-section-title">Plan solicitado</h3>
+                <p className="font-medium text-[var(--p-text)]">{detalle.plan.nombre}</p>
+                <p className={`text-sm ${platformUi.textMuted}`}>
+                  {detalle.plan.precioMensual === 0
+                    ? "Periodo demo"
+                    : `${formatMoneyPEN(detalle.plan.precioMensual)}/mes`}
+                </p>
+              </section>
+
+              <section className="platform-modal-section">
+                <h3 className="platform-modal-section-title">Gerente / solicitante</h3>
+                <p className={platformUi.textBody}>
                   {detalle.solicitante.solicitanteNombre} · DNI{" "}
                   {detalle.solicitante.solicitanteDni}
-                </dd>
-                <dd className={platformUi.textBody}>{detalle.solicitante.solicitanteEmail ?? detalle.empresa.emailFacturacion}</dd>
-              </div>
-              {detalle.mensajeCliente && (
-                <div>
-                  <dt className={platformUi.textMuted}>Mensaje del cliente</dt>
-                  <dd className={platformUi.textBody}>{detalle.mensajeCliente}</dd>
-                </div>
-              )}
-            </dl>
+                </p>
+                <p className={`text-sm ${platformUi.textMuted}`}>
+                  {detalle.solicitante.solicitanteEmail ?? "Sin email de solicitante"}
+                </p>
+              </section>
 
-            <label className="mt-4 block text-sm">
-              <span className={platformUi.formLabel}>Notas internas / seguimiento de contacto</span>
-              <textarea
-                className={`${platformUi.input} mt-1 min-h-[88px]`}
-                value={notas}
-                onChange={(e) => setNotas(e.target.value)}
-                placeholder="Llamada, correo enviado, acuerdo comercial…"
-              />
-            </label>
+              {detalle.mensajeCliente ? (
+                <section className="platform-modal-section">
+                  <h3 className="platform-modal-section-title">Mensaje del cliente</h3>
+                  <p className={`text-sm ${platformUi.textBody}`}>{detalle.mensajeCliente}</p>
+                </section>
+              ) : null}
 
-            <div className="mt-4 flex flex-wrap justify-end gap-2">
+              <label className="mt-4 block text-sm">
+                <span className={platformUi.formLabel}>Notas internas / seguimiento</span>
+                <textarea
+                  className={`${platformUi.input} mt-1 min-h-[88px]`}
+                  value={notas}
+                  onChange={(e) => setNotas(e.target.value)}
+                  placeholder="Llamada, correo enviado, acuerdo comercial…"
+                />
+              </label>
+            </div>
+
+            <div className="platform-modal-footer">
               <button type="button" className={platformUi.btnSecondary} onClick={() => setDetalleId(null)}>
                 Cerrar
               </button>
@@ -283,7 +331,7 @@ export default function SolicitudesContratoPage() {
                     <>
                       <button
                         type="button"
-                        className="inline-flex items-center gap-1 rounded-lg border border-red-200 px-3 py-2 text-sm text-red-700 hover:bg-red-50"
+                        className="platform-btn-danger"
                         disabled={accion.isPending}
                         onClick={() => accion.mutate({ tipo: "rechazar", id: detalle.id })}
                       >

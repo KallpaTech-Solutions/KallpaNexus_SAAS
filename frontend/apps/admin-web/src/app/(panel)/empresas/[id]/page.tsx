@@ -1,9 +1,12 @@
 "use client";
 
 import { EmpresaAcciones } from "@/components/empresa-acciones";
+import { EmpresaLimitesAdmin } from "@/components/empresa-limites-admin";
+import { EmpresaTenantsWebControl } from "@/components/empresa-tenants-web-control";
 import { tenantPanelLoginUrl, tenantPublicUrl } from "@/lib/platform-nav";
 import { usePlatformApi } from "@/lib/platform-api-context";
 import { platformUi } from "@/lib/platform-ui";
+import { platformEmpresaDocCodigo, platformEmpresaDocTexto } from "@/lib/empresa-documento";
 import { normalizePlatformTenant } from "@kallpanexus/api-client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ExternalLink, Loader2 } from "lucide-react";
@@ -29,6 +32,25 @@ export default function PlatformEmpresaDetallePage() {
 
   const empresa = empresaQ.data as Record<string, unknown> | undefined;
   const tenants = (tenantsQ.data ?? []).map(normalizePlatformTenant);
+  const tenantsEmpresa = (empresa?.tenants ?? empresa?.Tenants ?? []) as Array<{
+    id?: string;
+    Id?: string;
+    subdomain?: string;
+    Subdomain?: string;
+    nombreComercialNegocio?: string;
+    NombreComercialNegocio?: string;
+    isActive?: boolean;
+    IsActive?: boolean;
+    reservaWebActiva?: boolean;
+    ReservaWebActiva?: boolean;
+  }>;
+  const tenantsWeb = tenantsEmpresa.map((t) => ({
+    id: String(t.id ?? t.Id),
+    subdomain: String(t.subdomain ?? t.Subdomain ?? ""),
+    nombreComercialNegocio: String(t.nombreComercialNegocio ?? t.NombreComercialNegocio ?? ""),
+    isActive: Boolean(t.isActive ?? t.IsActive),
+    reservaWebActiva: Boolean(t.reservaWebActiva ?? t.ReservaWebActiva),
+  }));
   const tipo = String(empresa?.tipo ?? empresa?.Tipo ?? "");
   const estadoEmpresa = String(empresa?.estado ?? empresa?.Estado ?? "");
 
@@ -51,7 +73,14 @@ export default function PlatformEmpresaDetallePage() {
           <p className={platformUi.pageSubtitle}>Ficha de registro y tenants vinculados.</p>
         </div>
         {id && estadoEmpresa && (
-          <EmpresaAcciones id={id} estado={estadoEmpresa} onChanged={refreshEmpresa} />
+          <EmpresaAcciones
+            id={id}
+            estado={estadoEmpresa}
+            nombreComercial={String(
+              empresa?.nombreComercial ?? empresa?.NombreComercial ?? ""
+            )}
+            onChanged={refreshEmpresa}
+          />
         )}
       </div>
 
@@ -69,11 +98,18 @@ export default function PlatformEmpresaDetallePage() {
           <dl className="mt-4 grid gap-4 text-sm sm:grid-cols-2">
             <div>
               <dt className={platformUi.textMuted}>Tipo persona</dt>
-              <dd className="font-medium">{tipo || "—"}</dd>
+              <dd className="font-medium">
+                {platformEmpresaDocCodigo(tipo) === "RUC" ? "Empresa (RUC)" : "Persona natural (DNI)"}
+              </dd>
             </div>
             <div>
               <dt className={platformUi.textMuted}>Documento fiscal</dt>
-              <dd>{String(empresa.documentoFiscal ?? empresa.DocumentoFiscal ?? "—")}</dd>
+              <dd>
+                {platformEmpresaDocTexto(
+                  tipo,
+                  String(empresa.documentoFiscal ?? empresa.DocumentoFiscal ?? "")
+                )}
+              </dd>
             </div>
             <div>
               <dt className={platformUi.textMuted}>Razón social</dt>
@@ -118,6 +154,23 @@ export default function PlatformEmpresaDetallePage() {
             El email y teléfono suelen corresponder a quien completó el registro / facturación.
           </p>
         </div>
+      )}
+
+      {empresa && id && (
+        <>
+          <EmpresaLimitesAdmin empresaId={id} empresa={empresa} onSaved={refreshEmpresa} />
+          <EmpresaTenantsWebControl
+            tenants={tenantsWeb.length > 0 ? tenantsWeb : tenants.map((t) => ({
+              id: t.id,
+              subdomain: t.subdomain,
+              nombreComercialNegocio: t.nombreComercialNegocio,
+              reservaWebActiva: false,
+            }))}
+            reservaWebPermitidaPlataforma={
+              (empresa.reservaWebPermitida ?? empresa.ReservaWebPermitida) !== false
+            }
+          />
+        </>
       )}
 
       <h2 className={`mt-10 ${platformUi.sectionTitle}`}>Tenants de esta empresa</h2>

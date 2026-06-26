@@ -93,10 +93,12 @@ function UsuarioPlataformaAcciones({
 
 function StaffNegocioAcciones({
   id,
+  dni,
   activo,
   onChanged,
 }: {
   id: string;
+  dni: string;
   activo: boolean;
   onChanged: () => void;
 }) {
@@ -107,9 +109,22 @@ function StaffNegocioAcciones({
 
   const actions = [
     {
+      id: "staff-reset-pwd",
+      label: "Restablecer clave",
+      confirmTitle: "Restablecer contraseña",
+      confirm: `La clave volverá a ser el DNI (${dni}) y deberá cambiarla al ingresar al panel del negocio.`,
+      successMessage: "Contraseña restablecida al DNI.",
+      onClick: async () => {
+        await api.operaciones.restablecerPasswordStaffNegocio(id);
+        onChanged();
+      },
+    },
+    {
       id: activo ? "staff-off" : "staff-on",
       label: activo ? "Desactivar" : "Activar",
+      confirmTitle: activo ? "Desactivar staff" : undefined,
       confirm: activo ? "El staff no podrá entrar al panel del negocio." : undefined,
+      successMessage: activo ? "Staff desactivado." : "Staff activado.",
       onClick: async () => {
         await api.operaciones.actualizarStaffNegocio(id, { activo: !activo });
         onChanged();
@@ -119,7 +134,10 @@ function StaffNegocioAcciones({
       id: "staff-del",
       label: "Eliminar",
       variant: "danger" as const,
-      confirm: "Elimina el usuario staff de ese tenant (no borra la empresa). ¿Continuar?",
+      confirmTitle: "Eliminar staff del negocio",
+      confirm:
+        "Elimina el usuario staff de ese tenant (no borra la empresa ni otros negocios con el mismo DNI).",
+      successMessage: "Staff eliminado del negocio.",
       onClick: async () => {
         await api.operaciones.eliminarStaffNegocio(id);
         onChanged();
@@ -324,6 +342,7 @@ export default function PlatformUsuariosPage() {
                     <td className={platformUi.td}>
                       <StaffNegocioAcciones
                         id={u.id}
+                        dni={u.dni}
                         activo={u.activo}
                         onChanged={refreshStaff}
                       />

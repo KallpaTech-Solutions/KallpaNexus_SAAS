@@ -1,0 +1,70 @@
+.kallpa-public-landing {
+  --kallpa-landing-accent: #2563eb;
+  --kallpa-landing-accent-deep: #1d4ed8;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+@keyframes kallpa-landing-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes kallpa-landing-char-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.35em);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes kallpa-landing-float {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(12px, -18px) scale(1.05);
+  }
+}
+
+@keyframes kallpa-landing-float-delayed {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-16px, 14px) scale(1.08);
+  }
+}
+
+.kallpa-landing-marquee {
+  animation: kallpa-landing-marquee 36s linear infinite;
+}
+
+.kallpa-landing-char-in {
+  animation: kallpa-landing-char-in 0.45s ease-out both;
+}
+
+.kallpa-landing-orb {
+  animation: kallpa-landing-float 14s ease-in-out infinite;
+}
+
+.kallpa-landing-orb-alt {
+  animation: kallpa-landing-float-delayed 18s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kallpa-landing-marquee,
+  .kallpa-landing-char-in,
+  .kallpa-landing-orb,
+  .kallpa-landing-orb-alt {
+    animation: none !important;
+  }
+}

@@ -19,23 +19,22 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { FileText, Loader2, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-const silverModal =
-  "border border-zinc-300/80 bg-gradient-to-br from-zinc-200 via-zinc-50 to-zinc-300 shadow-[0_8px_32px_rgba(15,23,42,0.18),inset_0_1px_0_rgba(255,255,255,0.85)]";
+const modalShell =
+  "flex max-h-[92vh] w-full max-w-lg flex-col overflow-hidden rounded-t-2xl border border-slate-200 bg-white shadow-2xl sm:rounded-2xl";
 
-const silverPanel =
-  "relative overflow-hidden rounded-xl border border-zinc-400/50 bg-gradient-to-br from-zinc-100 via-white to-zinc-200 p-4 shadow-[inset_0_2px_4px_rgba(255,255,255,0.9),inset_0_-2px_6px_rgba(100,116,139,0.15),0_1px_2px_rgba(0,0,0,0.06)] before:pointer-events-none before:absolute before:inset-0 before:bg-[linear-gradient(105deg,transparent_40%,rgba(255,255,255,0.55)_50%,transparent_60%)] before:opacity-70";
+const sectionCard = "rounded-xl border border-slate-200 bg-slate-50/80 p-4";
 
-const silverInput =
-  "w-full rounded-lg border border-zinc-400/45 bg-gradient-to-b from-zinc-50 to-zinc-200/90 px-3 py-2.5 text-sm text-slate-900 shadow-[inset_0_2px_4px_rgba(148,163,184,0.25),0_1px_0_rgba(255,255,255,0.8)] focus:border-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-400/35";
+const fieldInput =
+  "w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20";
 
-const silverChipOn =
-  "border border-zinc-500/70 bg-gradient-to-b from-zinc-200 to-zinc-300 text-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_1px_2px_rgba(0,0,0,0.08)]";
+const choiceOn =
+  "border-emerald-600 bg-emerald-50 text-emerald-900 ring-1 ring-emerald-500/30";
 
-const silverChipOff =
-  "border border-zinc-400/45 bg-gradient-to-b from-zinc-50 to-zinc-100 text-slate-700 hover:from-white hover:to-zinc-200";
+const choiceOff =
+  "border-slate-200 bg-white text-slate-700 hover:border-emerald-300 hover:bg-emerald-50/50";
 
-const silverDropzone =
-  "relative flex cursor-pointer flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-zinc-400/70 bg-gradient-to-br from-zinc-100 via-zinc-50 to-zinc-200 px-4 py-5 text-center shadow-[inset_0_2px_8px_rgba(255,255,255,0.9),inset_0_-1px_4px_rgba(100,116,139,0.12)] transition hover:border-zinc-500/80 hover:shadow-[inset_0_2px_10px_rgba(255,255,255,1),0_0_0_1px_rgba(255,255,255,0.5)] before:pointer-events-none before:absolute before:inset-0 before:bg-[linear-gradient(120deg,transparent_35%,rgba(255,255,255,0.65)_48%,transparent_62%)] before:opacity-60";
+const dropzone =
+  "flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-white px-4 py-6 text-center transition hover:border-emerald-400 hover:bg-emerald-50/30";
 
 type Props = {
   slug: string;
@@ -292,15 +291,13 @@ export function PublicReservaModal({
       aria-modal="true"
       aria-labelledby="public-reserva-title"
     >
-      <div
-        className={`flex max-h-[92vh] w-full max-w-lg flex-col overflow-hidden rounded-t-2xl sm:rounded-2xl ${silverModal}`}
-      >
-        <div className="flex items-center justify-between border-b border-zinc-300/80 bg-gradient-to-r from-zinc-100/90 to-zinc-200/90 px-5 py-4 shadow-[inset_0_-1px_0_rgba(255,255,255,0.6)]">
+      <div className={modalShell}>
+        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
           <div>
             <p id="public-reserva-title" className="text-lg font-bold text-slate-900">
               Confirmar reserva
             </p>
-            <p className="text-xs text-slate-500">
+            <p className="text-sm text-slate-500">
               {canchaNombre} · {fecha}
             </p>
           </div>
@@ -314,14 +311,14 @@ export function PublicReservaModal({
           </button>
         </div>
 
-        <div className="flex-1 space-y-4 overflow-y-auto bg-gradient-to-b from-zinc-100/50 to-zinc-200/40 px-5 py-4">
-          <div className={`${silverPanel} !p-3`}>
-            <p className="relative text-sm font-semibold text-slate-800">Horarios</p>
-            <ul className="relative mt-2 space-y-2">
+        <div className="flex-1 space-y-5 overflow-y-auto px-5 py-5">
+          <div className={sectionCard}>
+            <p className="text-xs font-semibold uppercase tracking-wide text-emerald-800">Resumen</p>
+            <ul className="mt-3 space-y-2">
               {lineasHoras.map((slot) => (
                 <li
                   key={slot.horaInicio}
-                  className="flex items-center justify-between rounded-lg border border-zinc-300/60 bg-gradient-to-r from-white/80 to-zinc-100/90 px-3 py-2 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]"
+                  className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
                 >
                   <span>
                     {slot.horarioTexto}{" "}
@@ -357,12 +354,14 @@ export function PublicReservaModal({
             )}
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className={sectionCard}>
+            <p className="text-xs font-semibold uppercase tracking-wide text-emerald-800">Tus datos</p>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
             <div className="sm:col-span-2">
               <label className="mb-1 block text-sm font-medium text-slate-700">DNI</label>
               <div className="flex gap-2">
                 <input
-                  className={silverInput}
+                  className={fieldInput}
                   inputMode="numeric"
                   maxLength={8}
                   value={dni}
@@ -388,69 +387,91 @@ export function PublicReservaModal({
             <div>
               <label className="mb-1 block text-sm font-medium text-slate-700">Celular</label>
               <input
-                className={silverInput}
+                className={fieldInput}
                 inputMode="numeric"
                 maxLength={9}
                 value={telefono}
                 onChange={(e) => setTelefono(soloDigitosTelefono(e.target.value))}
               />
             </div>
-            <div>
+            <div className="sm:col-span-2">
               <label className="mb-1 block text-sm font-medium text-slate-700">
                 Nombre completo
               </label>
               <input
-                className={silverInput}
+                className={fieldInput}
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
               />
             </div>
+            </div>
           </div>
 
-          <div className={silverPanel}>
-            <p className="relative text-sm font-semibold text-slate-800">Pago</p>
-            <p className="mt-1 text-xs text-slate-600">¿Cuánto adelantas ahora?</p>
-            <p className="mt-1.5 rounded-lg border border-emerald-200/80 bg-emerald-50/90 px-2.5 py-2 text-[11px] leading-snug text-emerald-950">
-              <span className="font-semibold">Con adelanto</span> (30 % o pago total) el negocio
-              prioriza tu solicitud al revisar el voucher.{" "}
-              <span className="text-emerald-900/90">
-                Sin adelanto suele tardar más y el horario puede quedar libre para otro cliente.
-              </span>
-            </p>
-            <div className="mt-2 flex flex-wrap gap-2">
+          <div className={sectionCard}>
+            <p className="text-xs font-semibold uppercase tracking-wide text-emerald-800">Pago</p>
+
+            <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
+                Cuánto adelantas
+              </p>
+              <p className="mt-1 text-xs leading-snug text-slate-600">
+                Con adelanto (30 % o total) el negocio prioriza tu solicitud al revisar el voucher.
+                Sin adelanto puede tardar más.
+              </p>
+            <div className="mt-3 grid gap-2 sm:grid-cols-3">
               {(
                 [
-                  ["Total", "Pagar todo (100 %)"],
-                  ["Porcentaje30", "Adelanto 30 %"],
-                  ["SinAdelanto", "Reservar sin adelanto"],
+                  ["Total", "100 %"],
+                  ["Porcentaje30", "30 %"],
+                  ["SinAdelanto", "Sin adelanto"],
                 ] as const
               ).map(([val, label]) => (
                 <button
                   key={val}
                   type="button"
                   onClick={() => setTipoAdelanto(val)}
-                  className={`relative rounded-lg border px-3 py-2 text-xs font-semibold sm:text-sm ${
-                    tipoAdelanto === val ? silverChipOn : silverChipOff
+                  className={`rounded-lg border px-3 py-2.5 text-sm font-semibold transition ${
+                    tipoAdelanto === val ? choiceOn : choiceOff
                   }`}
                 >
-                  {label}
+                  {val === "Total" ? "Pagar todo" : val === "Porcentaje30" ? "Adelanto" : "Sin pago"}
+                  <span className="mt-0.5 block text-xs font-normal opacity-80">{label}</span>
                 </button>
               ))}
             </div>
+            </div>
+
+            {tipoAdelanto === "SinAdelanto" && (
+              <p className="mt-4 rounded-lg border border-amber-200/90 bg-amber-50/90 px-3 py-2.5 text-xs leading-snug text-amber-950">
+                Reserva <strong>sin pago ahora</strong>: el local confirma cuando pueda y pagas todo al
+                llegar.
+              </p>
+            )}
 
             {tipoAdelanto !== "SinAdelanto" && (
               <>
+            <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
+                Medio de pago
+              </p>
+              <p className="mt-1 text-xs text-slate-600">Elige dónde enviarás el adelanto.</p>
             {mediosQ.isLoading && (
-              <p className="mt-2 text-sm text-slate-500">Cargando medios…</p>
+              <p className="mt-3 text-sm text-slate-500">Cargando medios…</p>
             )}
-            <div className="mt-2 flex flex-wrap gap-2">
+            {!mediosQ.isLoading && medios.length === 0 && (
+              <p className="mt-3 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-950">
+                No hay medios de pago habilitados para la web. El negocio debe activar Yape, Plin o
+                transferencia en Configuración → Página web pública (o en Medios de pago).
+              </p>
+            )}
+            <div className="mt-3 flex flex-wrap gap-2">
               {medios.map((m) => (
                 <button
                   key={m.id}
                   type="button"
                   onClick={() => setMedioPagoId(m.id)}
-                  className={`relative rounded-lg border px-3 py-2 text-sm font-semibold ${
-                    medioPagoId === m.id ? silverChipOn : silverChipOff
+                  className={`min-w-[5.5rem] flex-1 rounded-lg border px-4 py-2.5 text-sm font-semibold transition sm:flex-none ${
+                    medioPagoId === m.id ? choiceOn : choiceOff
                   }`}
                 >
                   {m.nombre}
@@ -458,29 +479,32 @@ export function PublicReservaModal({
               ))}
             </div>
             {medioSel?.telefonoReferencia && (
-              <p className="mt-2 text-center text-sm font-medium text-slate-700">
-                Paga al número:{" "}
-                <span className="text-emerald-800">{medioSel.telefonoReferencia}</span>
+              <p className="mt-3 rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2 text-center text-sm text-slate-700">
+                Paga al número{" "}
+                <span className="font-bold text-emerald-800">{medioSel.telefonoReferencia}</span>
               </p>
             )}
             {medioSel?.qrUrl && (
-              <div className="relative mt-3 rounded-xl border border-zinc-400/55 bg-gradient-to-br from-white via-zinc-50 to-zinc-200 p-4 text-center shadow-[inset_0_2px_6px_rgba(255,255,255,0.95),0_2px_8px_rgba(0,0,0,0.06)]">
+              <div className="mt-3 rounded-xl border border-slate-100 bg-slate-50 p-4 text-center">
                 <p className="mb-2 text-xs font-medium text-slate-600">Escanea para pagar</p>
                 <img
                   src={publicTenantMediaUrl(slug, medioSel.qrUrl)}
                   alt={`QR ${medioSel.nombre}`}
-                  className="mx-auto max-h-52 w-auto max-w-full rounded-lg object-contain ring-1 ring-zinc-300/80"
+                  className="mx-auto max-h-52 w-auto max-w-full rounded-lg object-contain ring-1 ring-slate-200"
                   onError={(e) => {
                     e.currentTarget.closest("div")?.classList.add("hidden");
                   }}
                 />
               </div>
             )}
-            <div className="relative mt-4">
-              <label className="mb-2 block text-xs font-medium text-slate-700">
-                Comprobante de pago (máx. 5 MB)
-              </label>
+            </div>
 
+            <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
+                Comprobante
+              </p>
+              <p className="mt-1 text-xs text-slate-600">Sube la captura o indica el código de operación.</p>
+            <div className="relative mt-3">
               {voucherPreview && (
                 <div className="relative mb-3 overflow-hidden rounded-xl border border-zinc-400/60 bg-gradient-to-br from-zinc-50 via-white to-zinc-200 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_4px_12px_rgba(15,23,42,0.08)]">
                   <div className="mb-2 flex items-center justify-between gap-2">
@@ -524,7 +548,7 @@ export function PublicReservaModal({
               )}
 
               {!voucherPreview && (
-                <label className={silverDropzone}>
+                <label className={dropzone}>
                   <span className="relative text-sm font-semibold text-slate-800">
                     Subir captura o PDF
                   </span>
@@ -555,36 +579,32 @@ export function PublicReservaModal({
                 Código de operación (opcional si subes captura)
               </label>
               <input
-                className={silverInput}
+                className={fieldInput}
                 value={codigoOperacion}
                 onChange={(e) => setCodigoOperacion(e.target.value)}
               />
             </div>
+            </div>
               </>
-            )}
-            {tipoAdelanto === "SinAdelanto" && (
-              <p className="mt-3 rounded-lg border border-amber-200/90 bg-amber-50/90 px-2.5 py-2 text-xs leading-snug text-amber-950">
-                Reserva <strong>sin pago ahora</strong>: el local confirma cuando pueda y pagas
-                todo al llegar. Si el cupo se llena, pueden atender antes a quienes ya
-                adelantaron con voucher.
-              </p>
             )}
           </div>
 
           {error && <p className="text-sm text-red-600">{error}</p>}
         </div>
 
-        <div className="border-t border-zinc-300/80 bg-gradient-to-r from-zinc-100 to-zinc-200/95 px-5 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
+        <div className="border-t border-slate-200 bg-white px-5 py-4">
           <button
             type="button"
             disabled={enviar.isPending || horas.length === 0}
             onClick={() => enviar.mutate()}
-            className="w-full rounded-xl bg-gradient-to-b from-emerald-500 to-emerald-700 py-3.5 text-sm font-bold text-white shadow-[0_4px_14px_rgba(5,150,105,0.45),inset_0_1px_0_rgba(255,255,255,0.25)] hover:from-emerald-600 hover:to-emerald-800 disabled:opacity-50"
+            className="w-full rounded-xl bg-emerald-600 py-3.5 text-sm font-bold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-50"
           >
-            {enviar.isPending ? "Enviando solicitud…" : "Confirmar reserva"}
+            {enviar.isPending ? "Enviando solicitud…" : "Enviar solicitud de reserva"}
           </button>
-          <p className="mt-2 text-center text-[11px] text-slate-500">
-            El local verificará tu pago antes de confirmar el horario.
+          <p className="mt-2 text-center text-xs text-slate-500">
+            {tipoAdelanto === "SinAdelanto"
+              ? "El local confirmará tu cupo cuando pueda."
+              : "El local verificará tu voucher antes de confirmar el horario."}
           </p>
         </div>
       </div>

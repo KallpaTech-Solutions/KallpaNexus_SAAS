@@ -2,6 +2,7 @@
 
 import { usePlatformApi } from "@/lib/platform-api-context";
 import { platformUi } from "@/lib/platform-ui";
+import { platformEmpresaDocTexto } from "@/lib/empresa-documento";
 import { normalizePlatformEmpresa } from "@kallpanexus/api-client";
 import { EmpresaAcciones } from "@/components/empresa-acciones";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -123,7 +124,9 @@ export default function PlatformEmpresasPage() {
                 <td className={platformUi.td}>
                   <p className="font-semibold text-[var(--p-text)]">{e.nombreComercial}</p>
                   <p className={`text-xs ${platformUi.textMuted}`}>{e.razonSocial}</p>
-                  <p className={`text-xs ${platformUi.textMuted}`}>{e.documentoFiscal}</p>
+                  <p className={`text-xs ${platformUi.textMuted}`}>
+                    {platformEmpresaDocTexto(e.tipo, e.documentoFiscal)}
+                  </p>
                 </td>
                 <td className={platformUi.td}>
                   <p className="text-[var(--p-text-secondary)]">{e.emailFacturacion || "—"}</p>
@@ -139,7 +142,12 @@ export default function PlatformEmpresasPage() {
                     <Link href={`/empresas/${e.id}`} className={`text-xs ${platformUi.link}`}>
                       Ver ficha
                     </Link>
-                    <EmpresaAcciones id={e.id} estado={e.estado} onChanged={refresh} />
+                    <EmpresaAcciones
+                      id={e.id}
+                      estado={e.estado}
+                      nombreComercial={e.nombreComercial}
+                      onChanged={refresh}
+                    />
                   </div>
                 </td>
               </tr>

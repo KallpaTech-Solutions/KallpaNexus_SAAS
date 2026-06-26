@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 const nextConfig: NextConfig = {
   transpilePackages: [
@@ -6,6 +7,7 @@ const nextConfig: NextConfig = {
     "@kallpanexus/shared",
     "@kallpanexus/types",
   ],
+  outputFileTracingRoot: path.join(process.cwd(), "../.."),
   async redirects() {
     return [
       { source: "/t", destination: "/sports", permanent: false },

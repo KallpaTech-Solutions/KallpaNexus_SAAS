@@ -43,6 +43,7 @@ public class TenantSuscripcionController : ControllerBase
 
         var usoSucursales = await _suscripcion.ContarSucursalesTenantAsync();
         var usoStaff = await _suscripcion.ContarStaffEmpresaAsync();
+        var usoCanchas = await _suscripcion.ContarCanchasTenantAsync();
 
         var solicitudPendiente = await _masterDb.SolicitudesContratoPlan
             .AsNoTracking()
@@ -75,6 +76,7 @@ public class TenantSuscripcionController : ControllerBase
                     p.PrecioMensual,
                     p.LimiteSucursales,
                     p.LimiteUsuariosStaff,
+                    p.LimiteCanchas,
                     p.DiasDuracionDemo,
                     EsDemo = p.PrecioMensual <= 0,
                     EsActual = p.Id == empresa.PlanSaaSId
@@ -101,15 +103,18 @@ public class TenantSuscripcionController : ControllerBase
                 empresa.PlanSaaS.Id,
                 empresa.PlanSaaS.Nombre,
                 empresa.PlanSaaS.PrecioMensual,
-                empresa.PlanSaaS.LimiteSucursales,
-                empresa.PlanSaaS.LimiteUsuariosStaff,
+                LimiteSucursales = EmpresaLimitesHelper.LimiteSucursalesPorNegocio(empresa),
+                LimiteUsuariosStaff = EmpresaLimitesHelper.LimiteUsuariosStaff(empresa),
+                LimiteCanchas = EmpresaLimitesHelper.LimiteCanchasPorNegocio(empresa),
+                PrecioMensualEfectivo = EmpresaLimitesHelper.PrecioMensualFacturacion(empresa),
                 empresa.PlanSaaS.DiasDuracionDemo,
                 esDemo = PlanSaaSCicloHelper.EsPlanDemo(empresa.PlanSaaS)
             },
             uso = new
             {
                 sucursales = usoSucursales,
-                usuariosStaff = usoStaff
+                usuariosStaff = usoStaff,
+                canchas = usoCanchas,
             },
             solicitudPendiente,
             planesDisponibles

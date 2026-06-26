@@ -6,6 +6,7 @@ import { soloDigitosTelefono, etiquetaTelefonoCliente } from "@kallpanexus/share
 import { useTenantApi } from "@/lib/api-context";
 import { useAuthStore, canAccess } from "@/lib/auth-store";
 import { CampoFormulario, inputClass } from "@/components/campo-formulario";
+import { ConfiguracionMediosWeb } from "@/components/configuracion-medios-web";
 import { PanelSeccionColapsable } from "@/components/panel-seccion-colapsable";
 import { useUiFeedback } from "@/components/ui-feedback-provider";
 import { PUBLIC_HERO_IMAGE, resolveMediaUrl } from "@/lib/public-brand";
@@ -146,7 +147,8 @@ export default function ConfiguracionPage() {
           Configuración del negocio
         </h1>
         <p className="mt-1 text-sm text-slate-400">
-          WhatsApp y mensajes para contactar clientes desde Reservas.
+          WhatsApp del negocio (panel y página pública) y mensajes para contactar clientes desde
+          Reservas.
         </p>
       </header>
 
@@ -265,7 +267,7 @@ export default function ConfiguracionPage() {
 
                 <CampoFormulario
                   label="WhatsApp del negocio"
-                  hint="9 dígitos (referencia en panel)."
+                  hint="9 dígitos. Se muestra en /sports/tu-slug (#contacto) si la sede no tiene WhatsApp propio."
                 >
                   <input
                     className={inputClass}
@@ -437,6 +439,8 @@ export default function ConfiguracionPage() {
                     maxLength={800}
                   />
                 </CampoFormulario>
+
+                <ConfiguracionMediosWeb />
 
                 <button
                   type="button"

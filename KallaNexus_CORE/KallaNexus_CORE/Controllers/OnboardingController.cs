@@ -63,6 +63,34 @@ public class OnboardingController : ControllerBase
             new { error = "ConsultaExterna", mensaje = result.Mensaje });
     }
 
+    /// <summary>RUC para registro público (SUNAT vía Decolecta / caché).</summary>
+    [HttpGet("consultar-ruc")]
+    public async Task<IActionResult> ConsultarRucRegistro([FromQuery] string numero, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(numero))
+        {
+            return BadRequest(new { error = "Invalido", mensaje = "Indica el RUC." });
+        }
+
+        var digits = new string(numero.Where(char.IsDigit).ToArray());
+        if (digits.Length != 11)
+        {
+            return BadRequest(new { error = "Invalido", mensaje = "El RUC debe tener 11 dígitos." });
+        }
+
+        var result = await _consultas.ConsultarRucAsync(digits, completo: false, ct);
+        if (result == null)
+        {
+            return NotFound(new
+            {
+                error = "NoEncontrado",
+                mensaje = "No se encontró información para ese RUC."
+            });
+        }
+
+        return Ok(result);
+    }
+
     /// <summary>Vitrina pública de planes (paso 1 del registro de empresa).</summary>
     [HttpGet("planes")]
     public async Task<IActionResult> ListarPlanes()
@@ -135,6 +163,88 @@ public class OnboardingController : ControllerBase
         });
     }
 
+    /// <summary>Comprueba si ya existe un negocio o empresa pagadora con el mismo nombre comercial (marca).</summary>
+    [HttpGet("verificar-marca")]
+    public async Task<IActionResult> VerificarMarca([FromQuery] string nombre)
+    {
+        var limpio = nombre?.Trim() ?? "";
+        if (limpio.Length < 2)
+        {
+            return BadRequest(new { error = "NombreInvalido", disponible = false });
+        }
+
+        var clave = limpio.ToLowerInvariant();
+        var ocupadoNegocio = await _masterDb.Tenants.AnyAsync(t =>
+            t.NombreComercialNegocio.ToLower() == clave);
+        var ocupadoEmpresa = await _masterDb.ClientesEmpresas.AnyAsync(c =>
+            c.NombreComercial.ToLower() == clave);
+
+        return Ok(new
+        {
+            Nombre = limpio,
+            Disponible = !ocupadoNegocio && !ocupadoEmpresa,
+            Motivo = ocupadoNegocio || ocupadoEmpresa
+                ? "Ya hay una empresa o negocio registrado con ese nombre."
+                : null
+        });
+    }
+
+    /// <summary>Comprueba si el DNI del gerente ya tiene cuenta (demo u operativa) en la plataforma.</summary>
+    [HttpGet("verificar-gerente-dni")]
+    public async Task<IActionResult> VerificarGerenteDni([FromQuery] string dni)
+    {
+        var norm = StaffCredencialesHelper.NormalizarDni(dni ?? "");
+        if (!StaffCredencialesHelper.EsDniValidoParaStaff(norm))
+        {
+            return BadRequest(new { error = "DniInvalido", disponible = false });
+        }
+
+        var ocupado = await GerenteDniYaRegistradoAsync(norm);
+        return Ok(new
+        {
+            Dni = norm,
+            Disponible = !ocupado,
+            Motivo = ocupado
+                ? "Este DNI ya solicitó un demo o tiene acceso a un negocio en Kallpa Nexus."
+                : null
+        });
+    }
+
+    /// <summary>Comprueba si el DNI/RUC ya está registrado como empresa pagadora.</summary>
+    [HttpGet("verificar-documento-fiscal")]
+    public async Task<IActionResult> VerificarDocumentoFiscal([FromQuery] int tipo, [FromQuery] string numero)
+    {
+        var doc = new string((numero ?? "").Where(char.IsDigit).ToArray());
+        if (tipo == (int)TipoPersona.Empresa)
+        {
+            if (doc.Length != 11)
+            {
+                return BadRequest(new { error = "RucInvalido", disponible = false });
+            }
+        }
+        else if (tipo == (int)TipoPersona.PersonaNatural)
+        {
+            if (doc.Length != 8)
+            {
+                return BadRequest(new { error = "DniInvalido", disponible = false });
+            }
+        }
+        else
+        {
+            return BadRequest(new { error = "TipoInvalido", disponible = false });
+        }
+
+        var ocupado = await _masterDb.ClientesEmpresas.AnyAsync(c => c.DocumentoFiscal == doc);
+        return Ok(new
+        {
+            Documento = doc,
+            Disponible = !ocupado,
+            Motivo = ocupado
+                ? "Ya existe una empresa pagadora registrada con este documento."
+                : null
+        });
+    }
+
     [HttpPost("registrar")]
     public async Task<IActionResult> Registrar([FromBody] RegistrarOnboardingRequest request)
     {
@@ -152,7 +262,8 @@ public class OnboardingController : ControllerBase
             return BadRequest(new { error = "PlanInvalido", mensaje = "No hay plan activo. Contacta a soporte o crea un plan desde plataforma." });
         }
 
-        var documento = request.DocumentoFiscal.Trim();
+        var documento = new string((request.DocumentoFiscal ?? "").Where(char.IsDigit).ToArray());
+        var telefonoNorm = new string((request.Telefono ?? "").Where(char.IsDigit).ToArray());
         if (await _masterDb.ClientesEmpresas.AnyAsync(c => c.DocumentoFiscal == documento))
         {
             return BadRequest(new { error = "DocumentoDuplicado", mensaje = "Ya existe una empresa registrada con ese documento fiscal." });
@@ -161,6 +272,47 @@ public class OnboardingController : ControllerBase
         if (await _masterDb.Tenants.AnyAsync(t => t.Subdomain == subdomain))
         {
             return BadRequest(new { error = "SubdominioOcupado", mensaje = "El subdominio ya está en uso." });
+        }
+
+        var marcaNegocio = request.NombreComercialNegocio.Trim();
+        var claveMarca = marcaNegocio.ToLowerInvariant();
+        if (await _masterDb.Tenants.AnyAsync(t => t.NombreComercialNegocio.ToLower() == claveMarca))
+        {
+            return BadRequest(new
+            {
+                error = "MarcaDuplicada",
+                mensaje = "Ya existe un negocio registrado con ese nombre (marca)."
+            });
+        }
+
+        var nombreEmpresa = request.NombreComercial.Trim();
+        if (await _masterDb.ClientesEmpresas.AnyAsync(c => c.NombreComercial.ToLower() == nombreEmpresa.ToLowerInvariant()))
+        {
+            return BadRequest(new
+            {
+                error = "EmpresaNombreDuplicado",
+                mensaje = "Ya existe una empresa pagadora con ese nombre comercial."
+            });
+        }
+
+        var dniGerentePre = ResolverDniGerenteOnboarding(request);
+        if (!StaffCredencialesHelper.EsDniValidoParaStaff(dniGerentePre))
+        {
+            return BadRequest(new
+            {
+                error = "GerenteDniRequerido",
+                mensaje = "Indica el DNI del gerente que accederá al panel (8 dígitos)."
+            });
+        }
+
+        if (await GerenteDniYaRegistradoAsync(dniGerentePre))
+        {
+            return BadRequest(new
+            {
+                error = "GerenteDniDuplicado",
+                mensaje =
+                    "Este DNI ya tiene una cuenta demo o de negocio. Usa otro gerente o inicia sesión con el DNI registrado."
+            });
         }
 
         await using var masterTx = await _masterDb.Database.BeginTransactionAsync();
@@ -176,7 +328,7 @@ public class OnboardingController : ControllerBase
                 RazonSocial = request.RazonSocial.Trim(),
                 NombreComercial = request.NombreComercial.Trim(),
                 EmailFacturacion = request.EmailFacturacion.Trim(),
-                Telefono = request.Telefono.Trim(),
+                Telefono = telefonoNorm,
                 DireccionFiscal = request.DireccionFiscal?.Trim(),
                 Pais = string.IsNullOrWhiteSpace(request.Pais) ? "Peru" : request.Pais.Trim(),
                 PlanSaaSId = planId.Value,
@@ -209,8 +361,8 @@ public class OnboardingController : ControllerBase
                     : request.NombreSucursalPrincipal.Trim(),
                 Direccion = request.DireccionSucursal.Trim(),
                 Telefono = string.IsNullOrWhiteSpace(request.TelefonoSucursal)
-                    ? request.Telefono.Trim()
-                    : request.TelefonoSucursal.Trim(),
+                    ? telefonoNorm
+                    : new string(request.TelefonoSucursal.Where(char.IsDigit).ToArray()),
                 Activa = true
             };
 
@@ -298,18 +450,29 @@ public class OnboardingController : ControllerBase
             return new { error = "DatosIncompletos", mensaje = "Razón social, nombre comercial, email y teléfono son obligatorios." };
         }
 
-        var doc = request.DocumentoFiscal?.Trim() ?? string.Empty;
+        var telefonoDigitos = new string((request.Telefono ?? "").Where(char.IsDigit).ToArray());
+        if (telefonoDigitos.Length != 9)
+        {
+            return new { error = "TelefonoInvalido", mensaje = "Indica un celular de Perú con 9 dígitos." };
+        }
+
+        if (telefonoDigitos[0] != '9')
+        {
+            return new { error = "TelefonoInvalido", mensaje = "El celular en Perú suele comenzar con 9." };
+        }
+
+        var doc = new string((request.DocumentoFiscal ?? "").Where(char.IsDigit).ToArray());
         if (string.IsNullOrWhiteSpace(doc))
         {
             return new { error = "DocumentoRequerido", mensaje = "Debe indicar DNI o RUC en documento fiscal." };
         }
 
-        if (request.Tipo == TipoPersona.Empresa && doc.Length < 11)
+        if (request.Tipo == TipoPersona.Empresa && doc.Length != 11)
         {
             return new { error = "RucInvalido", mensaje = "Para empresa se espera un RUC válido (11 dígitos en Perú)." };
         }
 
-        if (request.Tipo == TipoPersona.PersonaNatural && doc.Length < 8)
+        if (request.Tipo == TipoPersona.PersonaNatural && doc.Length != 8)
         {
             return new { error = "DniInvalido", mensaje = "Para persona natural se espera un DNI válido (8 dígitos)." };
         }
@@ -380,5 +543,30 @@ public class OnboardingController : ControllerBase
             .FirstOrDefaultAsync();
 
         return demoId == Guid.Empty ? null : demoId;
+    }
+
+    private static string ResolverDniGerenteOnboarding(RegistrarOnboardingRequest request)
+    {
+        var documento = request.DocumentoFiscal.Trim();
+        var dniGerenteInput = StaffCredencialesHelper.NormalizarDni(request.StaffGerenteDni ?? string.Empty);
+
+        if (request.Tipo == TipoPersona.Empresa)
+        {
+            return dniGerenteInput;
+        }
+
+        if (StaffCredencialesHelper.EsDniValidoParaStaff(dniGerenteInput))
+        {
+            return dniGerenteInput;
+        }
+
+        return StaffCredencialesHelper.NormalizarDni(documento);
+    }
+
+    private async Task<bool> GerenteDniYaRegistradoAsync(string dniNormalizado)
+    {
+        return await _appDb.UsuariosStaff
+            .IgnoreQueryFilters()
+            .AnyAsync(u => u.Dni == dniNormalizado && u.Activo);
     }
 }

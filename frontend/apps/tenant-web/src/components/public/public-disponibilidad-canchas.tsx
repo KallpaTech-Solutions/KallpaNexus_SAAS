@@ -110,13 +110,35 @@ export function PublicDisponibilidadCanchas({
   }
 
   return (
-    <section id="canchas" className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
-      <h2 className="text-2xl font-bold text-slate-900">Disponibilidad de canchas</h2>
-      <p className="mt-1 text-slate-600">
-        Elige fecha, marca horarios disponibles y confirma con tu pago.
-      </p>
+    <section id="reservar" className="tenant-reserve-section scroll-mt-24 border-b border-slate-200/80 bg-gradient-to-b from-slate-50 to-white">
+      <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-14">
+        <div className="max-w-2xl">
+          <p className="text-xs font-semibold uppercase tracking-widest text-emerald-700">
+            Paso a paso
+          </p>
+          <h2 id="canchas" className="mt-1 scroll-mt-24 text-2xl font-bold text-slate-900 sm:text-3xl">
+            Reserva tu cancha
+          </h2>
+          <p className="mt-2 text-slate-600">
+            Elige la fecha, selecciona la cancha, marca horarios libres y confirma tu solicitud.
+          </p>
+        </div>
 
-      <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,240px)_1fr]">
+        <ol className="mt-5 flex flex-wrap gap-2 text-xs font-medium text-slate-600 sm:text-sm">
+          {["Fecha", "Cancha", "Horarios", "Confirmar"].map((paso, i) => (
+            <li
+              key={paso}
+              className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 shadow-sm"
+            >
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-bold text-white">
+                {i + 1}
+              </span>
+              {paso}
+            </li>
+          ))}
+        </ol>
+
+      <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,260px)_1fr]">
         <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Fecha</p>
           <PublicMiniCalendario
@@ -339,6 +361,7 @@ export function PublicDisponibilidadCanchas({
             </div>
           )}
         </div>
+      </div>
       </div>
 
       {canchaActiva && (

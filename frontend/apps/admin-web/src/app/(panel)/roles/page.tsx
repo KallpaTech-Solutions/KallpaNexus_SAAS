@@ -1,6 +1,8 @@
 "use client";
 
 import { PermisosGruposPicker } from "@/components/permisos-grupos-picker";
+import { PlatformConfirmDialog } from "@/components/platform-confirm-dialog";
+import { usePlatformToast } from "@/components/platform-toast";
 import { usePlatformApi } from "@/lib/platform-api-context";
 import { usePlatformAuthStore, usePlatformPermisos } from "@/lib/platform-auth-store";
 import { platformUi } from "@/lib/platform-ui";
@@ -69,6 +71,7 @@ const NIVELES_SUGERIDOS = [
 export default function PlatformRolesPage() {
   const api = usePlatformApi();
   const qc = useQueryClient();
+  const { notificar } = usePlatformToast();
   const permisosSesion = usePlatformPermisos();
   const rolSesion = usePlatformAuthStore((s) => s.session?.rol);
   const puedeGestionar = hasPlatformPermission(permisosSesion, "platform:roles:gestionar");
@@ -84,6 +87,7 @@ export default function PlatformRolesPage() {
   const [rolEditId, setRolEditId] = useState<string | null>(null);
   const [editPermisos, setEditPermisos] = useState<string[]>([]);
   const [error, setError] = useState("");
+  const [rolEliminar, setRolEliminar] = useState<RolRow | null>(null);
 
   const rolesQ = useQuery({
     queryKey: ["platform-roles"],
@@ -163,7 +167,11 @@ export default function PlatformRolesPage() {
 
   const eliminarMut = useMutation({
     mutationFn: (id: string) => api.roles.eliminar(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["platform-roles"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["platform-roles"] });
+      notificar("Rol eliminado.", "exito");
+      setRolEliminar(null);
+    },
     onError: (e) => setError(getApiErrorMessage(e) || "No se pudo eliminar el rol."),
   });
 
@@ -323,15 +331,8 @@ export default function PlatformRolesPage() {
                         className={`${platformUi.btnSecondary} !border-red-400 !text-red-700`}
                         disabled={eliminarMut.isPending}
                         onClick={() => {
-                          if (
-                            !window.confirm(
-                              `¿Eliminar el rol «${r.nombre}»? Debe no tener usuarios asignados.`
-                            )
-                          ) {
-                            return;
-                          }
                           setError("");
-                          eliminarMut.mutate(r.id);
+                          setRolEliminar(r);
                         }}
                       >
                         Eliminar
@@ -390,6 +391,25 @@ export default function PlatformRolesPage() {
           </div>
         </section>
       )}
+
+      <PlatformConfirmDialog
+        open={rolEliminar !== null}
+        title="Eliminar rol"
+        message={
+          rolEliminar
+            ? `¿Eliminar el rol «${rolEliminar.nombre}»? Solo es posible si no tiene usuarios asignados.`
+            : ""
+        }
+        variant="danger"
+        confirmLabel="Eliminar rol"
+        busy={eliminarMut.isPending}
+        onCancel={() => {
+          if (!eliminarMut.isPending) setRolEliminar(null);
+        }}
+        onConfirm={() => {
+          if (rolEliminar) eliminarMut.mutate(rolEliminar.id);
+        }}
+      />
     </div>
   );
 }

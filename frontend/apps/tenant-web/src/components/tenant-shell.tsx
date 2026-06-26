@@ -74,6 +74,9 @@ export function TenantShell({ children }: { children: ReactNode }) {
           yo.sucursales && yo.sucursales.length > 0
             ? mapLoginSucursales(yo.sucursales)
             : actual.sucursales,
+        nombreComercialNegocio:
+          yo.nombreComercialNegocio ?? actual.nombreComercialNegocio ?? null,
+        nombreEmpresa: yo.nombreEmpresa ?? actual.nombreEmpresa ?? null,
       });
     });
     return () => {

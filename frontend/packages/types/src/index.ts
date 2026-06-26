@@ -109,6 +109,7 @@ export type PlanSaaSVitrina = {
   precioMensual: number;
   limiteSucursales: number;
   limiteUsuariosStaff: number;
+  limiteCanchas?: number;
   esActual?: boolean;
 };
 
@@ -127,10 +128,13 @@ export type TenantSuscripcionResumen = {
     precioMensual: number;
     limiteSucursales: number;
     limiteUsuariosStaff: number;
+    limiteCanchas?: number;
+    precioMensualEfectivo?: number;
   };
   uso: {
     sucursales: number;
     usuariosStaff: number;
+    canchas?: number;
   };
   planesDisponibles?: PlanSaaSVitrina[] | null;
   solicitudPendiente?: {
@@ -235,6 +239,8 @@ export type TenantStaffLoginResponse = {
   nombreCompleto?: string;
   email?: string | null;
   subdomain?: string;
+  nombreComercialNegocio?: string;
+  nombreEmpresa?: string;
   rol?: string;
   permisos?: string[];
   debeCambiarPassword?: boolean;
@@ -255,6 +261,8 @@ export type TenantStaffYo = {
   permisos: string[];
   accesoTodasSucursales?: boolean;
   sucursales?: { id: string; nombre: string }[];
+  nombreComercialNegocio?: string | null;
+  nombreEmpresa?: string | null;
 };
 
 export type SucursalListItem = {
@@ -372,6 +380,8 @@ export type PublicReservaSlot = {
 export type PublicNegocioInfo = {
   slug: string;
   nombreComercial: string;
+  /** WhatsApp del negocio (9 dígitos), desde configuración del panel. */
+  telefonoWhatsAppNegocio?: string | null;
   tituloLanding?: string;
   mensajeLanding?: string;
   imagenHeroUrl?: string | null;
@@ -384,8 +394,11 @@ export type PublicNegocioInfo = {
     nombre: string;
     ciudad?: string | null;
     direccion: string;
+    telefono?: string | null;
+    telefonoWhatsApp?: string | null;
     latitud?: number | null;
     longitud?: number | null;
+    enlaceGoogleMaps?: string | null;
   }[];
 };
 

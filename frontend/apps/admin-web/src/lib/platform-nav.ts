@@ -17,6 +17,12 @@ export type PlatformNavItem = {
   icon: typeof LayoutDashboard;
 };
 
+export type PlatformNavSection = {
+  id: string;
+  label: string;
+  itemHrefs: string[];
+};
+
 export const PLATFORM_NAV: PlatformNavItem[] = [
   {
     href: "/dashboard",
@@ -62,8 +68,36 @@ export const PLATFORM_NAV: PlatformNavItem[] = [
   },
 ];
 
+export const PLATFORM_NAV_SECTIONS: PlatformNavSection[] = [
+  { id: "resumen", label: "Resumen", itemHrefs: ["/dashboard"] },
+  {
+    id: "negocios",
+    label: "Negocios",
+    itemHrefs: ["/empresas", "/tenants", "/planes", "/solicitudes-contrato"],
+  },
+  {
+    id: "staff",
+    label: "Plataforma Kallpa",
+    itemHrefs: ["/usuarios", "/roles"],
+  },
+];
+
 export function filterPlatformNav(permisos: string[]): PlatformNavItem[] {
   return PLATFORM_NAV.filter((item) => hasPlatformPermission(permisos, item.permiso));
+}
+
+export function filterPlatformNavSections(
+  permisos: string[]
+): { section: PlatformNavSection; items: PlatformNavItem[] }[] {
+  const allowed = filterPlatformNav(permisos);
+  const byHref = new Map(allowed.map((item) => [item.href, item]));
+
+  return PLATFORM_NAV_SECTIONS.map((section) => ({
+    section,
+    items: section.itemHrefs
+      .map((href) => byHref.get(href))
+      .filter((item): item is PlatformNavItem => item != null),
+  })).filter((block) => block.items.length > 0);
 }
 
 export function puedeAccederRutaPlatform(pathname: string, permisos: string[]): boolean {

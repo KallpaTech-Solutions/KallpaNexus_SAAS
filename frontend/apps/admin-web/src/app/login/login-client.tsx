@@ -5,7 +5,7 @@ import { usePlatformAuthStore } from "@/lib/platform-auth-store";
 import { applyPlatformTheme, readPlatformTheme } from "@/lib/platform-theme";
 import { platformUi } from "@/lib/platform-ui";
 import { getApiErrorMessage, type PlatformLoginResponse } from "@kallpanexus/api-client";
-import { Layers, Loader2 } from "lucide-react";
+import { Layers, Loader2, ShieldCheck } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -60,24 +60,43 @@ export function PlatformLoginClient() {
 
   return (
     <div className={platformUi.loginPage}>
+      <header className="platform-login-hero">
+        <p className="platform-login-hero-badge">
+          <ShieldCheck className="h-4 w-4 shrink-0" aria-hidden />
+          Consola de plataforma · Admin
+        </p>
+        <h1 className="platform-login-hero-title">
+          Operación interna de Kallpa Nexus
+        </h1>
+        <p className="platform-login-hero-lead">
+          Gestión de empresas, tenants y equipo interno. Aquí entras con{" "}
+          <strong className="font-semibold text-[var(--p-text)]">correo electrónico</strong>
+          , no con DNI.
+        </p>
+      </header>
+
       <div className={platformUi.loginCard}>
-        <div className="mb-6 flex items-center justify-center gap-2">
-          <span className="flex h-10 w-10 items-center justify-center rounded-lg border-2 border-[var(--p-accent)] bg-[var(--p-nav-active-bg)] text-[var(--p-accent)]">
+        <div className="mb-5 flex items-center gap-3 border-b border-[var(--p-border)] pb-5">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border-2 border-[var(--p-accent)] bg-[var(--p-nav-active-bg)] text-[var(--p-accent)]">
             <Layers className="h-5 w-5" aria-hidden />
           </span>
           <div>
-            <p className="font-semibold text-[var(--p-text)]">Plataforma Kallpa</p>
-            <p className={`text-xs ${platformUi.textMuted}`}>Operación SaaS interna</p>
+            <p className="font-semibold text-[var(--p-text)]">Acceso administrador</p>
+            <p className={`text-xs ${platformUi.textMuted}`}>
+              Correo y contraseña del staff de plataforma
+            </p>
           </div>
         </div>
         <form onSubmit={onSubmit} className="space-y-4">
           {error && <p className={platformUi.alertDanger}>{error}</p>}
           <label className="block text-sm">
-            <span className={platformUi.formLabel}>Email</span>
+            <span className={platformUi.formLabel}>Correo electrónico</span>
             <input
               type="email"
               required
               autoComplete="username"
+              inputMode="email"
+              placeholder="tu.correo@kallpa…"
               className={platformUi.input}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -96,13 +115,16 @@ export function PlatformLoginClient() {
           </label>
           <button type="submit" disabled={loading} className={`${platformUi.btnPrimary} w-full py-2.5`}>
             {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-            Entrar
+            Entrar a la consola
           </button>
         </form>
-        <p className={`mt-6 text-center text-xs ${platformUi.textMuted}`}>
-          Dev: credenciales en appsettings → Platform:SuperAdminEmail
-        </p>
       </div>
+
+      <p className="platform-login-context">
+        ¿Eres personal de un negocio cliente? Entra con{" "}
+        <strong className="font-medium text-[var(--p-text)]">DNI</strong> en el portal
+        del tenant (web pública o subdominio), no en esta consola.
+      </p>
     </div>
   );
 }

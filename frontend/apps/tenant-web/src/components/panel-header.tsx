@@ -91,6 +91,29 @@ export function PanelHeader() {
 
         <div className="hidden h-8 w-px bg-slate-200 md:block" />
 
+        {session && (
+          <div className="hidden min-w-0 max-w-[12rem] shrink-0 lg:block xl:max-w-xs">
+            <p className="truncate text-[10px] font-medium uppercase tracking-wider text-slate-500">
+              Negocio
+            </p>
+            <p
+              className="truncate text-sm font-semibold text-sport-navy"
+              title={session.nombreComercialNegocio ?? session.nombreEmpresa ?? undefined}
+            >
+              {session.nombreComercialNegocio ??
+                session.nombreEmpresa ??
+                "Mi negocio"}
+            </p>
+            {session.nombreEmpresa &&
+              session.nombreComercialNegocio &&
+              session.nombreEmpresa !== session.nombreComercialNegocio && (
+                <p className="truncate text-[11px] text-slate-500" title={session.nombreEmpresa}>
+                  {session.nombreEmpresa}
+                </p>
+              )}
+          </div>
+        )}
+
         {session && activa && (
           <div ref={sedeRef} className="relative min-w-0 flex-1 md:max-w-xs lg:max-w-sm">
             <p className="mb-0.5 text-[10px] font-medium uppercase tracking-wider text-slate-500">

@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using KallpaNexus.API.Auth;
 using KallpaNexus.API.Json;
 using KallpaNexus.API.Swagger;
+using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -121,6 +122,12 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+if (app.Environment.IsDevelopment())
+{
+    LogConnectionTarget(app.Logger, app.Configuration, "MasterConnection", "Master DB");
+    LogConnectionTarget(app.Logger, app.Configuration, "SharedTenantConnection", "Shared tenant DB");
+}
+
 using (var scope = app.Services.CreateScope())
 {
     var masterDb = scope.ServiceProvider.GetRequiredService<MasterDbContext>();
@@ -128,15 +135,70 @@ using (var scope = app.Services.CreateScope())
     var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
     var tenantProvider = scope.ServiceProvider.GetRequiredService<ITenantProvider>();
 
-    await PlatformRbacSeeder.SeedAsync(masterDb, config);
-    await SaaSPlanesSeeder.EnsureCatalogoAsync(masterDb);
-    await appDb.Database.MigrateAsync();
-    await DevelopmentTenantDataSeeder.SeedAsync(
-        app.Environment.IsDevelopment(),
-        masterDb,
-        appDb,
-        tenantProvider,
-        config);
+    try
+    {
+        await PlatformRbacSeeder.SeedAsync(masterDb, config);
+        await SaaSPlanesSeeder.EnsureCatalogoAsync(masterDb);
+        await masterDb.Database.MigrateAsync();
+        await appDb.Database.MigrateAsync();
+        await DevelopmentTenantDataSeeder.SeedAsync(
+            app.Environment.IsDevelopment(),
+            masterDb,
+            appDb,
+            tenantProvider,
+            config);
+    }
+    catch (Exception ex) when (app.Environment.IsDevelopment() && IsDbConnectivityFailure(ex))
+    {
+        app.Logger.LogError(
+            "PostgreSQL inaccesible en Development (revisa la línea 'Master DB → Host=...' arriba). " +
+            "User Secrets en este proyecto sobrescriben appsettings.Development.json. " +
+            "Usa el pooler Supabase (aws-1-us-east-1.pooler.supabase.com) o Postgres local localhost:5433.");
+        throw;
+    }
 }
 
 app.Run();
+
+static void LogConnectionTarget(
+    ILogger logger,
+    IConfiguration configuration,
+    string name,
+    string label)
+{
+    var cs = configuration.GetConnectionString(name);
+    if (string.IsNullOrWhiteSpace(cs))
+    {
+        logger.LogWarning("{Label}: sin ConnectionStrings:{Name}", label, name);
+        return;
+    }
+
+    try
+    {
+        var b = new NpgsqlConnectionStringBuilder(cs);
+        logger.LogInformation(
+            "{Label} → Host={Host}, Port={Port}, Database={Database}, Username={Username}",
+            label,
+            b.Host,
+            b.Port,
+            b.Database,
+            b.Username);
+    }
+    catch (Exception ex)
+    {
+        logger.LogWarning(ex, "{Label}: ConnectionStrings:{Name} inválida", label, name);
+    }
+}
+
+static bool IsDbConnectivityFailure(Exception ex)
+{
+    for (var e = ex; e != null; e = e.InnerException)
+    {
+        if (e is System.Net.Sockets.SocketException or NpgsqlException or TimeoutException)
+        {
+            return true;
+        }
+    }
+
+    return ex is InvalidOperationException;
+}

@@ -1,5 +1,6 @@
 "use client";
 
+import { PublicContactoNegocio } from "@/components/public/public-contacto-negocio";
 import { PublicSportFooter, PublicSportHeader } from "@/components/public/public-sport-chrome";
 import { PublicDisponibilidadCanchas } from "@/components/public/public-disponibilidad-canchas";
 import { PublicHeroLanding } from "@/components/public/public-hero-landing";
@@ -99,8 +100,8 @@ export function TenantLandingClient({ params }: Props) {
     return (
       <div className="mx-auto max-w-lg px-4 py-20 text-center">
         <p className="text-red-600">No encontramos el complejo &quot;{slug}&quot;.</p>
-        <Link href="/t" className="mt-4 inline-block text-emerald-700 underline">
-          Volver al inicio
+        <Link href="/sports" className="mt-4 inline-block text-emerald-700 underline">
+          Volver al directorio
         </Link>
       </div>
     );
@@ -109,11 +110,11 @@ export function TenantLandingClient({ params }: Props) {
   if (!negocio.reservaWebActiva) {
     return (
       <>
-        <PublicSportHeader tenantNombre={negocio.nombreComercial} tenantSlug={slug} />
-        <main className="mx-auto max-w-lg px-4 py-20 text-center">
+        <PublicSportHeader tenantNombre={negocio.nombreComercial} tenantSlug={slug} solidTopBar />
+        <main className="mx-auto max-w-lg px-4 pb-20 pt-[88px] text-center">
           <h1 className="text-2xl font-bold">{negocio.nombreComercial}</h1>
           <p className="mt-4 text-slate-600">Reservas web no activas.</p>
-          <Link href="/t" className="mt-6 inline-block text-emerald-700 underline">
+          <Link href="/sports" className="mt-6 inline-block text-emerald-700 underline">
             Ver otras sedes
           </Link>
         </main>
@@ -125,15 +126,15 @@ export function TenantLandingClient({ params }: Props) {
   if (enviado) {
     return (
       <>
-        <PublicSportHeader tenantNombre={negocio.nombreComercial} tenantSlug={slug} />
-        <main className="mx-auto max-w-lg px-4 py-20 text-center">
+        <PublicSportHeader tenantNombre={negocio.nombreComercial} tenantSlug={slug} solidTopBar />
+        <main className="mx-auto max-w-lg px-4 pb-20 pt-[88px] text-center">
           <CheckCircle2 className="mx-auto h-14 w-14 text-emerald-600" />
           <h1 className="mt-4 text-2xl font-bold">Solicitud enviada</h1>
           <p className="mt-3 text-slate-600">
             {negocio.nombreComercial} confirmará tu reserva pronto.
           </p>
-          <Link href="/t" className="mt-8 inline-block rounded-xl bg-emerald-600 px-5 py-2.5 text-white">
-            Volver al inicio
+          <Link href="/sports" className="mt-8 inline-block rounded-xl bg-emerald-600 px-5 py-2.5 text-white">
+            Volver al directorio
           </Link>
         </main>
         <PublicSportFooter />
@@ -151,8 +152,12 @@ export function TenantLandingClient({ params }: Props) {
     "Reserva canchas, elige horarios y agrega bebidas. Confirmación manual del local.";
 
   return (
-    <>
-      <PublicSportHeader tenantNombre={negocio.nombreComercial} tenantSlug={slug} />
+    <div className="tenant-reserve-page min-h-screen pt-[72px]">
+      <PublicSportHeader
+        tenantNombre={sucursalSeleccionada?.nombre ?? negocio.nombreComercial}
+        tenantSlug={slug}
+        solidTopBar
+      />
       <main>
         <PublicHeroLanding
           heroImage={heroImage}
@@ -160,6 +165,18 @@ export function TenantLandingClient({ params }: Props) {
           heroTitulo={heroTitulo}
           heroMensaje={heroMensaje}
           nombreComercial={negocio.nombreComercial}
+          sedeNombre={sucursalSeleccionada?.nombre}
+        />
+
+        <PublicDisponibilidadCanchas
+          slug={slug}
+          canchas={canchas}
+          loading={canchasQ.isLoading}
+          initialCanchaId={canchaReservar}
+          initialFecha={fechaReservar}
+          productos={productos}
+          carrito={carrito}
+          onReservaEnviada={() => setEnviado(true)}
         />
 
         <PublicSedesUbicacion
@@ -170,17 +187,20 @@ export function TenantLandingClient({ params }: Props) {
         />
 
         {productos.length > 0 && (
-          <section id="tienda" className="border-t border-slate-200 bg-slate-50 py-12">
+          <section id="tienda" className="scroll-mt-24 border-t border-slate-200 bg-white py-12">
             <div className="mx-auto max-w-6xl px-4 sm:px-6">
-              <h2 className="text-2xl font-bold text-slate-900">Tienda de artículos deportivos</h2>
-              <p className="mt-1 text-slate-600">
-                Agrega bebidas o extras antes de reservar; se incluyen en tu solicitud.
+              <p className="text-xs font-semibold uppercase tracking-widest text-emerald-700">
+                Extras
               </p>
-              <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+              <h2 className="mt-1 text-2xl font-bold text-slate-900">Tienda</h2>
+              <p className="mt-2 max-w-xl text-slate-600">
+                Agrega bebidas o artículos a tu reserva; se incluyen en la solicitud al confirmar.
+              </p>
+              <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
                 {productos.map((p) => (
                   <div
                     key={p.id}
-                    className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 text-center shadow-sm"
+                    className="flex flex-col rounded-2xl border border-slate-200 bg-slate-50/80 p-4 text-center shadow-sm transition hover:border-emerald-200 hover:shadow-md"
                   >
                     <div className="mx-auto mb-3 flex h-20 w-20 items-center justify-center rounded-2xl bg-emerald-50 text-3xl">
                       🥤
@@ -227,19 +247,14 @@ export function TenantLandingClient({ params }: Props) {
           </section>
         )}
 
-        <PublicDisponibilidadCanchas
-          slug={slug}
-          canchas={canchas}
-          loading={canchasQ.isLoading}
-          initialCanchaId={canchaReservar}
-          initialFecha={fechaReservar}
-          productos={productos}
-          carrito={carrito}
-          onReservaEnviada={() => setEnviado(true)}
+        <PublicContactoNegocio
+          nombreComercial={negocio.nombreComercial}
+          telefonoWhatsAppNegocio={negocio.telefonoWhatsAppNegocio}
+          sucursalActiva={sucursalSeleccionada}
+          variasSedes={negocio.sucursales.length > 1}
         />
-
       </main>
       <PublicSportFooter />
-    </>
+    </div>
   );
 }

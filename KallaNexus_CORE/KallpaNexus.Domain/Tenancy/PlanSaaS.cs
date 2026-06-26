@@ -12,6 +12,9 @@ public class PlanSaaS
     public int LimiteSucursales { get; set; }
     public int LimiteUsuariosStaff { get; set; }
 
+    /// <summary>Máximo de canchas activas por negocio (Sport). 0 = sin tope en plan.</summary>
+    public int LimiteCanchas { get; set; }
+
     public bool SoportaModuloSport { get; set; }
     public bool SoportaModuloStay { get; set; }
     public bool SoportaModuloCare { get; set; }

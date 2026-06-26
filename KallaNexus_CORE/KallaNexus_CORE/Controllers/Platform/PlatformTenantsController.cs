@@ -208,6 +208,49 @@ public class PlatformTenantsController : ControllerBase
         return Ok(new { Mensaje = "Tenant actualizado.", TenantId = tenant.Id });
     }
 
+    [HttpPut("{tenantId:guid}/reserva-web")]
+    [HasPermission(PermisosApp.PlatformTenantsGestionar)]
+    public async Task<IActionResult> ConfigurarReservaWeb(Guid tenantId, [FromBody] ReservaWebTenantRequest request)
+    {
+        var tenant = await _masterDb.Tenants
+            .Include(t => t.ClienteEmpresa)
+            .FirstOrDefaultAsync(t => t.Id == tenantId);
+
+        if (tenant == null)
+        {
+            return NotFound(new { error = "NoEncontrado", mensaje = "Tenant no encontrado." });
+        }
+
+        if (!tenant.ClienteEmpresa.ReservaWebPermitida && request.Activa)
+        {
+            return BadRequest(new
+            {
+                error = "WebBloqueadaPlataforma",
+                mensaje = "La plataforma tiene deshabilitada la web pública para esta empresa. Actívala en la ficha de empresa."
+            });
+        }
+
+        _tenantProvider.SetTenant(tenant);
+
+        var cfg = await _appDb.ConfiguracionNegocio.FirstOrDefaultAsync();
+        if (cfg == null)
+        {
+            cfg = new ConfiguracionNegocioSport();
+            _appDb.ConfiguracionNegocio.Add(cfg);
+        }
+
+        cfg.ReservaWebActiva = request.Activa;
+        await _appDb.SaveChangesAsync();
+
+        return Ok(new
+        {
+            Mensaje = request.Activa ? "Reserva web activada para el negocio." : "Reserva web desactivada.",
+            TenantId = tenant.Id,
+            tenant.Subdomain,
+            ReservaWebActiva = cfg.ReservaWebActiva,
+        });
+    }
+
     [HttpDelete("{tenantId:guid}")]
     [HasPermission(PermisosApp.PlatformTenantsGestionar)]
     public async Task<IActionResult> Eliminar(Guid tenantId)
@@ -240,4 +283,9 @@ public class ActualizarTenantRequest
     public string? NombreComercialNegocio { get; set; }
     public bool? IsActive { get; set; }
     public string? ConnectionStringDedicada { get; set; }
+}
+
+public class ReservaWebTenantRequest
+{
+    public bool Activa { get; set; }
 }

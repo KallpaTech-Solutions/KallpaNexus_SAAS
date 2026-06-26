@@ -516,6 +516,31 @@ public class PlatformOperacionesController : ControllerBase
         });
     }
 
+    [HttpPost("staff-negocios/{staffId:guid}/restablecer-password")]
+    [HasPermission(PermisosApp.PlatformTenantsGestionar)]
+    public async Task<IActionResult> RestablecerPasswordStaffNegocio(Guid staffId)
+    {
+        var staff = await _appDb.UsuariosStaff
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(u => u.Id == staffId);
+
+        if (staff == null)
+        {
+            return NotFound(new { error = "NoEncontrado", mensaje = "Usuario staff no encontrado." });
+        }
+
+        staff.PasswordHash = PlatformPasswordHasher.Hash(staff.Dni);
+        staff.DebeCambiarPassword = true;
+        await _appDb.SaveChangesAsync();
+
+        return Ok(new
+        {
+            Mensaje = "Contraseña restablecida al DNI. Deberá cambiarla en el próximo ingreso.",
+            staff.Id,
+            staff.TenantId
+        });
+    }
+
     [HttpDelete("staff-negocios/{staffId:guid}")]
     [HasPermission(PermisosApp.PlatformTenantsGestionar)]
     public async Task<IActionResult> EliminarStaffNegocio(Guid staffId)
