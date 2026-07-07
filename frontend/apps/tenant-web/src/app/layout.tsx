@@ -1,7 +1,6 @@
-import { PublicGoogleTagManagerPageViews } from "@/components/analytics/public-google-tag-manager";
+import { TenantGoogleAnalytics } from "@/components/analytics/tenant-google-analytics";
 import { Providers } from "@/components/providers";
-import { readGtmId } from "@/lib/gtm";
-import { GoogleTagManager } from "@next/third-parties/google";
+import { readGaMeasurementId } from "@/lib/google-analytics";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -30,17 +29,16 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const gtmId = readGtmId();
+  const gaId = readGaMeasurementId();
 
   return (
     <html lang="es">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <PublicGoogleTagManagerPageViews />
         <Providers>{children}</Providers>
+        {gaId ? <TenantGoogleAnalytics measurementId={gaId} /> : null}
       </body>
-      {gtmId ? <GoogleTagManager gtmId={gtmId} /> : null}
     </html>
   );
 }
