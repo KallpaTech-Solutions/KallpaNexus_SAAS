@@ -1,7 +1,5 @@
 "use client";
 
-import { isTenantPublicMarketingPath } from "@/lib/public-routes";
-import { GoogleAnalytics } from "@next/third-parties/google";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 
@@ -15,17 +13,16 @@ type Props = {
   measurementId: string;
 };
 
-/** gtag.js solo en rutas públicas; actualiza page_path en navegación App Router. */
-export function TenantGoogleAnalytics({ measurementId }: Props) {
+/** Actualiza page_path en navegación App Router (la carga inicial va en <head>). */
+export function TenantGoogleAnalyticsNavigation({ measurementId }: Props) {
   const pathname = usePathname() ?? "/";
-  const isPublic = isTenantPublicMarketingPath(pathname);
-  const hadPublicView = useRef(false);
+  const isFirst = useRef(true);
 
   useEffect(() => {
-    if (!isPublic || typeof window.gtag !== "function") return;
+    if (typeof window.gtag !== "function") return;
 
-    if (!hadPublicView.current) {
-      hadPublicView.current = true;
+    if (isFirst.current) {
+      isFirst.current = false;
       return;
     }
 
@@ -33,9 +30,7 @@ export function TenantGoogleAnalytics({ measurementId }: Props) {
       page_path: pathname,
       page_title: document.title,
     });
-  }, [pathname, isPublic, measurementId]);
+  }, [pathname, measurementId]);
 
-  if (!isPublic) return null;
-
-  return <GoogleAnalytics gaId={measurementId} />;
+  return null;
 }

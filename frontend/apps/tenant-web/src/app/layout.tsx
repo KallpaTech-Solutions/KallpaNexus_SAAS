@@ -1,4 +1,5 @@
-import { TenantGoogleAnalytics } from "@/components/analytics/tenant-google-analytics";
+import { GoogleAnalyticsHead } from "@/components/analytics/google-analytics-head";
+import { TenantGoogleAnalyticsNavigation } from "@/components/analytics/tenant-google-analytics";
 import { Providers } from "@/components/providers";
 import { readGaMeasurementId } from "@/lib/google-analytics";
 import type { Metadata } from "next";
@@ -33,11 +34,14 @@ export default function RootLayout({
 
   return (
     <html lang="es">
+      <head>{gaId ? <GoogleAnalyticsHead measurementId={gaId} /> : null}</head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Providers>{children}</Providers>
-        {gaId ? <TenantGoogleAnalytics measurementId={gaId} /> : null}
+        {gaId ? (
+          <TenantGoogleAnalyticsNavigation measurementId={gaId} />
+        ) : null}
       </body>
     </html>
   );
