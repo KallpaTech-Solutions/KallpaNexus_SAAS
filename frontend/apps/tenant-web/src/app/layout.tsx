@@ -1,9 +1,7 @@
-import {
-  GoogleTagManagerHeadScript,
-  GoogleTagManagerNoScript,
-} from "@/components/analytics/google-tag-manager-server";
 import { PublicGoogleTagManagerPageViews } from "@/components/analytics/public-google-tag-manager";
 import { Providers } from "@/components/providers";
+import { readGtmId } from "@/lib/gtm";
+import { GoogleTagManager } from "@next/third-parties/google";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -32,18 +30,17 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const gtmId = readGtmId();
+
   return (
     <html lang="es">
-      <head>
-        <GoogleTagManagerHeadScript />
-      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <GoogleTagManagerNoScript />
         <PublicGoogleTagManagerPageViews />
         <Providers>{children}</Providers>
       </body>
+      {gtmId ? <GoogleTagManager gtmId={gtmId} /> : null}
     </html>
   );
 }
