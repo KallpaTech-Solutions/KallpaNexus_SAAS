@@ -1,4 +1,5 @@
 import { GoogleAnalyticsHead } from "@/components/analytics/google-analytics-head";
+import { PublicAnalyticsClicks } from "@/components/analytics/public-analytics-clicks";
 import { TenantGoogleAnalyticsNavigation } from "@/components/analytics/tenant-google-analytics";
 import { Providers } from "@/components/providers";
 import { readGaMeasurementId } from "@/lib/google-analytics";
@@ -40,7 +41,10 @@ export default function RootLayout({
       >
         <Providers>{children}</Providers>
         {gaId ? (
-          <TenantGoogleAnalyticsNavigation measurementId={gaId} />
+          <>
+            <TenantGoogleAnalyticsNavigation measurementId={gaId} />
+            <PublicAnalyticsClicks />
+          </>
         ) : null}
       </body>
     </html>
