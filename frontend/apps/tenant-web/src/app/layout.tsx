@@ -1,3 +1,8 @@
+import {
+  GoogleTagManagerHeadScript,
+  GoogleTagManagerNoScript,
+} from "@/components/analytics/google-tag-manager-server";
+import { PublicGoogleTagManagerPageViews } from "@/components/analytics/public-google-tag-manager";
 import { Providers } from "@/components/providers";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -29,9 +34,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
+      <head>
+        <GoogleTagManagerHeadScript />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <GoogleTagManagerNoScript />
+        <PublicGoogleTagManagerPageViews />
         <Providers>{children}</Providers>
       </body>
     </html>
