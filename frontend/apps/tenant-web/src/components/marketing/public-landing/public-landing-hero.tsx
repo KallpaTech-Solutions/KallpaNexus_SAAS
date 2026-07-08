@@ -13,14 +13,14 @@ export function PublicLandingHero() {
   return (
     <section
       id="inicio"
-      className="relative overflow-hidden bg-[#f8fafc] pb-14 pt-6 sm:pt-8 lg:pb-20 lg:pt-10"
+      className="relative min-h-[calc(100svh-4.5rem)] overflow-hidden bg-[#f8fafc] pt-6 sm:min-h-[calc(100svh-4.75rem)] sm:pt-8 lg:pt-10"
     >
       <div className="pointer-events-none absolute inset-0 kallpa-landing-hero-grid" />
       <PublicLandingGlitchAccent className="opacity-50" />
 
-      {/* Esfera: altura fija desde arriba del hero (no sigue el padding del texto) */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[min(80vh,740px)]">
-        <div className="absolute right-[-18%] top-0 h-[min(118vw,720px)] w-[min(118vw,720px)] sm:right-[-14%] lg:right-[-6%] lg:h-[min(88vh,820px)] lg:w-[min(88vh,820px)]">
+      {/* Esfera: ocupa el hero; la cinta cierra al mismo nivel visual */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 bottom-0 z-0">
+        <div className="absolute right-[-18%] top-0 h-[min(105vw,680px)] w-[min(105vw,680px)] sm:right-[-14%] lg:right-[-6%] lg:h-[min(76vh,760px)] lg:w-[min(76vh,760px)]">
           <PublicLandingWaveSphere className="h-full w-full" />
         </div>
         <div
@@ -29,7 +29,7 @@ export function PublicLandingHero() {
         />
       </div>
 
-      <div className="relative z-10 mx-auto max-w-6xl px-4 pb-[min(28vh,220px)] pt-10 sm:px-6 sm:pt-14 lg:pt-[4.25rem] lg:pb-[min(32vh,280px)]">
+      <div className="relative z-10 mx-auto max-w-6xl px-4 pt-10 sm:px-6 sm:pt-14 lg:pt-[4.25rem]">
         <div className="max-w-xl lg:max-w-[46%]">
           <p
             className={`mb-2 font-mono text-xs uppercase tracking-[0.25em] text-blue-600 transition-all duration-700 ${
@@ -79,8 +79,9 @@ export function PublicLandingHero() {
         </div>
       </div>
 
+      {/* Cinta sobre la parte baja de la esfera, al cierre del hero */}
       <div
-        className={`relative z-10 mt-4 overflow-hidden border-y border-slate-200/60 bg-white/60 py-5 backdrop-blur-sm transition-opacity duration-700 delay-300 sm:mt-6 lg:mt-8 ${
+        className={`absolute inset-x-0 bottom-[10%] z-20 overflow-hidden border-y border-slate-200/70 bg-white/75 py-4 shadow-sm backdrop-blur-md transition-opacity duration-700 delay-300 sm:bottom-[9%] lg:bottom-[7%] lg:py-5 ${
           ready ? "opacity-100" : "opacity-0"
         }`}
       >
