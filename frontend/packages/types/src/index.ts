@@ -413,6 +413,7 @@ export type PublicHubSedeCard = {
   tiposCancha: string[];
   sedeSlug?: string;
   urlReserva: string;
+  imagenHeroUrl?: string | null;
 };
 
 export type PublicHubResponse = {

@@ -7,6 +7,7 @@ import {
 } from "@/components/public/sports-hub-filter-select";
 import { PUBLIC_HERO_IMAGE } from "@/lib/public-brand";
 import { publicSportApi } from "@/lib/public-api";
+import { resolvePublicMediaUrl } from "@/lib/tenant-media-url";
 import type { PublicHubSedeCard } from "@kallpanexus/types";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, MapPin, Search, Sparkles } from "lucide-react";
@@ -70,13 +71,14 @@ function SedeCard({ sede }: { sede: PublicHubSedeCard }) {
   const href = sede.urlReserva.includes("?")
     ? sede.urlReserva
     : `${sede.urlReserva}?sede=${encodeURIComponent(sede.sedeSlug ?? "sede")}#reservar`;
+  const portada = resolvePublicMediaUrl(sede.slug, sede.imagenHeroUrl, PUBLIC_HERO_IMAGE);
   return (
     <article className="sports-sede-card group overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm">
       <div className="relative h-52 overflow-hidden bg-slate-900 sm:h-56 md:h-60">
         <div
           className="sports-sede-card-image absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: `linear-gradient(to top, rgba(0,0,0,.65), transparent 45%), url(${PUBLIC_HERO_IMAGE})`,
+            backgroundImage: `linear-gradient(to top, rgba(0,0,0,.65), transparent 45%), url(${portada})`,
           }}
         />
         <span className="absolute bottom-3 left-3 rounded-full bg-emerald-500/95 px-2.5 py-0.5 text-xs font-semibold text-white shadow-lg shadow-emerald-900/30">

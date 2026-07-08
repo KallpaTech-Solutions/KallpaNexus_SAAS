@@ -119,6 +119,7 @@ public class PublicHubController : ControllerBase
                     tiposCancha = tipos,
                     sedeSlug,
                     urlReserva = $"/t/{tenant.Subdomain}?sede={sedeSlug}#reservar",
+                    imagenHeroUrl = cfg.ImagenHeroRuta,
                 });
             }
         }
