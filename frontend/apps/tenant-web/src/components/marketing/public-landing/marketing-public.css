@@ -64,7 +64,60 @@
   .kallpa-landing-marquee,
   .kallpa-landing-char-in,
   .kallpa-landing-orb,
-  .kallpa-landing-orb-alt {
+  .kallpa-landing-orb-alt,
+  .kallpa-landing-sphere-glow {
     animation: none !important;
   }
+}
+
+.kallpa-landing-hero-grid {
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, black, transparent);
+}
+
+.kallpa-landing-grid-fade {
+  background-image:
+    radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.06), transparent 45%),
+    radial-gradient(circle at 80% 30%, rgba(14, 165, 233, 0.05), transparent 40%);
+}
+
+.kallpa-landing-cta-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+@keyframes kallpa-landing-sphere-pulse {
+  0%,
+  100% {
+    opacity: 0.65;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+.kallpa-landing-sphere-glow {
+  animation: kallpa-landing-sphere-pulse 6s ease-in-out infinite;
+}
+
+.kallpa-landing-title-stroke {
+  -webkit-text-stroke: 0.5px rgba(37, 99, 235, 0.35);
+  paint-order: stroke fill;
+}
+
+.kallpa-landing-glitch-rail {
+  background: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 26px,
+    rgba(37, 99, 235, 0.03) 26px,
+    rgba(37, 99, 235, 0.03) 27px
+  );
 }

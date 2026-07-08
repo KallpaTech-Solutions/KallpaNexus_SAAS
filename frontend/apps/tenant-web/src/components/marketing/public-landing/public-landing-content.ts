@@ -5,6 +5,7 @@ export const LANDING_MODULOS = [
     titulo: "Nexus Sport",
     estado: "disponible" as const,
     desc: "Canchas y complejos deportivos.",
+    tagline: "Reservas web, tarifas y panel en tiempo real.",
     items: [
       "Reservas web y calendario en tiempo real",
       "Panel admin, tarifas y medios de pago",
@@ -17,6 +18,7 @@ export const LANDING_MODULOS = [
     titulo: "Nexus Stay",
     estado: "proximo" as const,
     desc: "Hoteles, hostales y alojamientos.",
+    tagline: "Habitaciones y check-in digital.",
     items: ["Check-in digital", "Housekeeping", "Tarifas dinámicas", "Motor de reservas"],
   },
   {
@@ -25,6 +27,7 @@ export const LANDING_MODULOS = [
     titulo: "Nexus Care",
     estado: "proximo" as const,
     desc: "Spas, clínicas y bienestar.",
+    tagline: "Agenda y membresías.",
     items: ["Agenda inteligente", "Historial de clientes", "Recordatorios", "Membresías"],
   },
   {
@@ -33,6 +36,7 @@ export const LANDING_MODULOS = [
     titulo: "Nexus Gear",
     estado: "proximo" as const,
     desc: "Alquiler de maquinaria.",
+    tagline: "Catálogo y contratos.",
     items: ["Catálogo digital", "Disponibilidad", "Contratos", "Facturación"],
   },
 ] as const;
@@ -70,11 +74,11 @@ export const LANDING_HERO_WORDS = ["reservar", "cobrar", "reportar", "escalar"] 
 
 export const LANDING_NAV = [
   { name: "Inicio", href: "#inicio" },
+  { name: "Oferta", href: "#oferta" },
   { name: "Módulos", href: "#modulos" },
-  { name: "Beneficios", href: "#beneficios" },
   { name: "Precios", href: "#planes" },
-  { name: "Demostración", href: "/demo/sport" },
-  { name: "Directorio Sport", href: "/sports" },
+  { name: "Sport", href: "/sports" },
+  { name: "Demo", href: "/demo/sport" },
 ] as const;
 
 /** Enlaces a secciones de la landing: siempre al inicio (`/#modulos`), no al path actual. */
