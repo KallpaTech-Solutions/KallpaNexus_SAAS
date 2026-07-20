@@ -1,13 +1,14 @@
 "use client";
 
-import { PlatformConfirmDialog } from "@/components/platform-confirm-dialog";
+import { EmpresaEliminarDialog } from "@/components/empresa-eliminar-dialog";
 import { PlatformEntityActions } from "@/components/platform-entity-actions";
 import { usePlatformToast } from "@/components/platform-toast";
 import { usePlatformApi } from "@/lib/platform-api-context";
 import { usePlatformPermisos } from "@/lib/platform-auth-store";
+import type { PlatformEmpresaResumenEliminacion } from "@kallpanexus/api-client";
 import { getApiErrorMessage } from "@kallpanexus/api-client";
 import { hasPlatformPermission } from "@kallpanexus/shared";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 export function EmpresaAcciones({
   id,
@@ -26,6 +27,23 @@ export function EmpresaAcciones({
   const puede = hasPlatformPermission(permisos, "platform:empresas:modificar");
   const [eliminarOpen, setEliminarOpen] = useState(false);
   const [eliminarBusy, setEliminarBusy] = useState(false);
+  const [resumen, setResumen] = useState<PlatformEmpresaResumenEliminacion | null>(null);
+  const [resumenLoading, setResumenLoading] = useState(false);
+  const [resumenError, setResumenError] = useState<string | null>(null);
+
+  const cargarResumen = useCallback(async () => {
+    setResumenLoading(true);
+    setResumenError(null);
+    setResumen(null);
+    try {
+      const data = await api.empresas.resumenEliminacion(id);
+      setResumen(data);
+    } catch (err) {
+      setResumenError(getApiErrorMessage(err) || "No se pudo cargar el resumen.");
+    } finally {
+      setResumenLoading(false);
+    }
+  }, [api.empresas, id]);
 
   if (!puede || !id) return null;
 
@@ -78,16 +96,15 @@ export function EmpresaAcciones({
     });
   }
 
-  if (e === "cancelado") {
-    actions.push({
-      id: "eliminar-datos",
-      label: "Eliminar datos",
-      variant: "danger" as const,
-      onClick: async () => {
-        setEliminarOpen(true);
-      },
-    });
-  }
+  actions.push({
+    id: "eliminar-empresa",
+    label: "Eliminar empresa",
+    variant: "danger" as const,
+    onClick: async () => {
+      setEliminarOpen(true);
+      await cargarResumen();
+    },
+  });
 
   async function ejecutarEliminarDefinitivo() {
     if (!nombreConfirm) {
@@ -96,7 +113,7 @@ export function EmpresaAcciones({
     }
     setEliminarBusy(true);
     try {
-      await api.empresas.eliminarDefinitivo(id, nombreConfirm);
+      await api.empresas.eliminarDefinitivo(id, nombreConfirm, true);
       notificar("Empresa y datos operativos eliminados.", "exito");
       setEliminarOpen(false);
       onChanged();
@@ -110,19 +127,13 @@ export function EmpresaAcciones({
   return (
     <>
       <PlatformEntityActions actions={actions} />
-      <PlatformConfirmDialog
+      <EmpresaEliminarDialog
         open={eliminarOpen}
-        title="Eliminar datos permanentemente"
-        message="Se borrarán tenants, staff, reservas, productos y demás datos de negocio. No se eliminan cuentas B2C ni el acceso del mismo DNI en otras empresas. Esta acción no se puede deshacer."
-        variant="danger"
-        confirmLabel="Eliminar todo"
         busy={eliminarBusy}
-        requireTextMatch={nombreConfirm || undefined}
-        requireTextLabel={
-          nombreConfirm
-            ? `Escribe el nombre comercial de facturación: ${nombreConfirm}`
-            : undefined
-        }
+        nombreComercialConfirm={nombreConfirm}
+        resumen={resumen}
+        resumenLoading={resumenLoading}
+        resumenError={resumenError}
         onCancel={() => {
           if (!eliminarBusy) setEliminarOpen(false);
         }}

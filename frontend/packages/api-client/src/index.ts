@@ -830,6 +830,65 @@ export type PlatformEmpresaListItem = {
   TotalTenants?: number;
 };
 
+export type PlatformEmpresaEliminacionConteos = {
+  tenants?: number;
+  Tenants?: number;
+  sucursales?: number;
+  Sucursales?: number;
+  canchas?: number;
+  Canchas?: number;
+  tarifas?: number;
+  Tarifas?: number;
+  reservas?: number;
+  Reservas?: number;
+  ventas?: number;
+  Ventas?: number;
+  productos?: number;
+  Productos?: number;
+  usuariosStaff?: number;
+  UsuariosStaff?: number;
+  clientes?: number;
+  Clientes?: number;
+  mediosPago?: number;
+  MediosPago?: number;
+  egresos?: number;
+  Egresos?: number;
+  reportesArchivados?: number;
+  ReportesArchivados?: number;
+  totalRegistrosOperativos?: number;
+  TotalRegistrosOperativos?: number;
+};
+
+export type PlatformEmpresaResumenEliminacion = {
+  empresaId?: string;
+  EmpresaId?: string;
+  nombreComercial?: string;
+  NombreComercial?: string;
+  razonSocial?: string;
+  RazonSocial?: string;
+  estado?: string;
+  Estado?: string;
+  requiereCancelacionPrevia?: boolean;
+  RequiereCancelacionPrevia?: boolean;
+  aviso?: string;
+  Aviso?: string;
+  totales?: PlatformEmpresaEliminacionConteos;
+  Totales?: PlatformEmpresaEliminacionConteos;
+  tenants?: Array<{
+    id?: string;
+    Id?: string;
+    subdomain?: string;
+    Subdomain?: string;
+    nombreComercialNegocio?: string;
+    NombreComercialNegocio?: string;
+    isActive?: boolean;
+    IsActive?: boolean;
+    conteos?: PlatformEmpresaEliminacionConteos;
+    Conteos?: PlatformEmpresaEliminacionConteos;
+  }>;
+  Tenants?: PlatformEmpresaResumenEliminacion["tenants"];
+};
+
 export type PlatformTenantListItem = {
   id: string;
   Id?: string;
@@ -1018,9 +1077,14 @@ export function createPlatformServices(client: AxiosInstance) {
         }
       ) => client.put(`/api/platform/empresas/${id}`, body).then((r) => r.data),
       cancelar: (id: string) => client.delete(`/api/platform/empresas/${id}`).then((r) => r.data),
-      eliminarDefinitivo: (id: string, confirmacion: string) =>
+      resumenEliminacion: (id: string) =>
+        client.get<PlatformEmpresaResumenEliminacion>(`/api/platform/empresas/${id}/resumen-eliminacion`).then((r) => r.data),
+      eliminarDefinitivo: (id: string, confirmacion: string, aceptaEliminarTodo: boolean) =>
         client
-          .post(`/api/platform/empresas/${id}/eliminar-definitivo`, { confirmacion })
+          .post(`/api/platform/empresas/${id}/eliminar-definitivo`, {
+            confirmacion,
+            aceptaEliminarTodo,
+          })
           .then((r) => r.data),
       actualizarLimites: (
         id: string,

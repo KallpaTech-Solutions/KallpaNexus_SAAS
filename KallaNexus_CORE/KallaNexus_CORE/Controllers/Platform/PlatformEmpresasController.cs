@@ -397,7 +397,7 @@ public class PlatformEmpresasController : ControllerBase
     }
 
     /// <summary>
-    /// Borra la empresa pagadora y todos los datos de sus tenants. Solo si está Cancelada.
+    /// Borra la empresa pagadora y todos los datos de sus tenants (requiere confirmación por nombre y aceptaEliminarTodo).
     /// No elimina cuentas B2C ni staff de otros negocios (mismo DNI en otra empresa).
     /// </summary>
     [HttpPost("{empresaId:guid}/eliminar-definitivo")]
@@ -413,13 +413,24 @@ public class PlatformEmpresasController : ControllerBase
             return NotFound(new { error = "NoEncontrado", mensaje = "Empresa no encontrada." });
         }
 
-        if (empresa.Estado != EstadoSuscripcion.Cancelado)
+        if (!request.AceptaEliminarTodo)
         {
             return BadRequest(new
             {
-                error = "EstadoInvalido",
-                mensaje = "Solo se pueden eliminar empresas en estado Cancelado. Cancela la empresa antes."
+                error = "ConfirmacionRequerida",
+                mensaje = "Debes aceptar la eliminación permanente de todos los datos listados."
             });
+        }
+
+        if (empresa.Estado != EstadoSuscripcion.Cancelado)
+        {
+            empresa.Estado = EstadoSuscripcion.Cancelado;
+            foreach (var tenant in empresa.Tenants)
+            {
+                tenant.IsActive = false;
+            }
+
+            await _masterDb.SaveChangesAsync();
         }
 
         var frase = (request.Confirmacion ?? "").Trim();
@@ -448,6 +459,53 @@ public class PlatformEmpresasController : ControllerBase
             Mensaje = "Empresa y datos operativos de sus negocios eliminados permanentemente.",
             EmpresaId = empresaId,
             TenantsEliminados = tenantIds.Count
+        });
+    }
+
+    /// <summary>Conteo de datos operativos que se borrarían con eliminar-definitivo.</summary>
+    [HttpGet("{empresaId:guid}/resumen-eliminacion")]
+    [HasPermission(PermisosApp.PlatformEmpresasVer)]
+    public async Task<IActionResult> ResumenEliminacion(Guid empresaId)
+    {
+        var empresa = await _masterDb.ClientesEmpresas
+            .Include(c => c.Tenants)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Id == empresaId);
+
+        if (empresa == null)
+        {
+            return NotFound(new { error = "NoEncontrado", mensaje = "Empresa no encontrada." });
+        }
+
+        var tenantIds = empresa.Tenants.Select(t => t.Id).ToList();
+        var totales = await EmpresaTenantResumenEliminacionService.ContarTenantsAsync(_appDb, tenantIds);
+
+        var porTenant = new List<object>();
+        foreach (var tenant in empresa.Tenants)
+        {
+            var c = await EmpresaTenantResumenEliminacionService.ContarTenantAsync(_appDb, tenant.Id);
+            porTenant.Add(new
+            {
+                tenant.Id,
+                tenant.Subdomain,
+                tenant.NombreComercialNegocio,
+                tenant.IsActive,
+                Conteos = c,
+            });
+        }
+
+        return Ok(new
+        {
+            empresaId = empresa.Id,
+            empresa.NombreComercial,
+            empresa.RazonSocial,
+            Estado = empresa.Estado.ToString(),
+            RequiereCancelacionPrevia = empresa.Estado != EstadoSuscripcion.Cancelado,
+            Totales = totales,
+            Tenants = porTenant,
+            Aviso =
+                "Se eliminarán negocios (tenants), staff, reservas, ventas, canchas, sucursales y configuración. " +
+                "No se borran cuentas B2C globales ni el mismo DNI en otras empresas.",
         });
     }
 }
@@ -488,4 +546,7 @@ public class EliminarEmpresaDefinitivoRequest
 {
     /// <summary>Debe coincidir con el nombre comercial de la empresa (confirmación).</summary>
     public string Confirmacion { get; set; } = string.Empty;
+
+    /// <summary>Si la empresa no está cancelada, cancelar y purgar en el mismo paso.</summary>
+    public bool AceptaEliminarTodo { get; set; }
 }
