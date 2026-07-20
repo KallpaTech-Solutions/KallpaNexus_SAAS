@@ -13,6 +13,9 @@ export const KNX_DEV_DEFAULTS = {
   adminLoginPath: "/login",
 } as const;
 
+/** tenant-web en producción cuando Render no define NEXT_PUBLIC_* en el build. */
+export const KNX_PRODUCTION_TENANT_WEB_URL = "https://kallpanexus.page";
+
 function trimSlash(url: string): string {
   return url.replace(/\/$/, "");
 }
@@ -65,22 +68,42 @@ export function getAdminApiClientBaseUrl(): string {
 }
 
 export function getTenantWebUrl(): string {
-  return trimSlash(
-    readEnv("NEXT_PUBLIC_TENANT_WEB_URL") ??
-      readEnv("NEXT_PUBLIC_APP_URL") ??
-      KNX_DEV_DEFAULTS.tenantWebUrl
+  const fromEnv =
+    readEnv("NEXT_PUBLIC_TENANT_WEB_URL") ?? readEnv("NEXT_PUBLIC_APP_URL");
+  if (fromEnv) {
+    return trimSlash(fromEnv);
+  }
+  if (process.env.NODE_ENV === "production") {
+    return KNX_PRODUCTION_TENANT_WEB_URL;
+  }
+  return KNX_DEV_DEFAULTS.tenantWebUrl;
+}
+
+function isLocalhostHostname(hostname: string): boolean {
+  return (
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname.endsWith(".localhost")
   );
 }
 
 /**
- * URL de login del panel staff para un subdominio (prod: sub.dominio; dev: sub.localhost).
+ * URL de login del panel staff para un subdominio.
+ * Prod (un solo dominio): /login?subdomain=… en el origen actual o kallpanexus.page.
+ * Dev: {sub}.localhost:3000/login
  */
 export function tenantStaffLoginUrl(subdomain: string): string {
   const sub = subdomain.trim().toLowerCase();
+  if (typeof window !== "undefined") {
+    const { hostname, origin } = window.location;
+    if (!isLocalhostHostname(hostname)) {
+      return `${trimSlash(origin)}/login?subdomain=${encodeURIComponent(sub)}`;
+    }
+  }
   const base = getTenantWebUrl();
   try {
     const u = new URL(base);
-    if (u.hostname === "localhost" || u.hostname.endsWith(".localhost")) {
+    if (isLocalhostHostname(u.hostname)) {
       return `${tenantPanelUrlForSubdomain(sub)}/login`;
     }
   } catch {
@@ -92,8 +115,7 @@ export function tenantStaffLoginUrl(subdomain: string): string {
 /** true en localhost / *.localhost (p. ej. sportza.localhost). */
 export function isKnxLocalDev(): boolean {
   if (typeof window !== "undefined") {
-    const h = window.location.hostname;
-    return h === "localhost" || h === "127.0.0.1" || h.endsWith(".localhost");
+    return isLocalhostHostname(window.location.hostname);
   }
   return process.env.NODE_ENV === "development";
 }
@@ -127,10 +149,13 @@ export function getGoogleMapsEmbedApiKey(): string | undefined {
 /** URL pública del panel tenant de un negocio (enlaces desde admin). */
 export function tenantPanelUrlForSubdomain(subdomain: string): string {
   const sub = subdomain.trim().toLowerCase();
+  if (typeof window !== "undefined" && !isLocalhostHostname(window.location.hostname)) {
+    return trimSlash(window.location.origin);
+  }
   const base = getTenantWebUrl();
   try {
     const u = new URL(base);
-    if (u.hostname === "localhost" || u.hostname.endsWith(".localhost")) {
+    if (isLocalhostHostname(u.hostname)) {
       return `${u.protocol}//${sub}.localhost${u.port ? `:${u.port}` : ""}`;
     }
     const host = u.hostname.startsWith("www.") ? u.hostname.slice(4) : u.hostname;

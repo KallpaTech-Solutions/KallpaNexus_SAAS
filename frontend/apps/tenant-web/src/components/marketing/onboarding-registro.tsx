@@ -12,7 +12,7 @@ import { NotificacionToastStack } from "@/components/notificacion-toast";
 import { useRegistroToast } from "@/components/marketing/onboarding-registro-toast";
 import { getApiErrorMessage } from "@kallpanexus/api-client";
 import type { RucConsultaResult } from "@kallpanexus/types";
-import { isKnxLocalDev, tenantPanelUrlForSubdomain, tenantStaffLoginUrl } from "@kallpanexus/env";
+import { isKnxLocalDev, tenantPanelUrlForSubdomain } from "@kallpanexus/env";
 import axios from "axios";
 import {
   ArrowLeft,
@@ -566,7 +566,11 @@ export function OnboardingRegistroForm({
           )}
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <Link
-              href={subFinal ? tenantStaffLoginUrl(subFinal) : "/login"}
+              href={
+                subFinal
+                  ? `/login?subdomain=${encodeURIComponent(subFinal)}`
+                  : "/login"
+              }
               className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-blue-700"
             >
               Ir al login del panel
