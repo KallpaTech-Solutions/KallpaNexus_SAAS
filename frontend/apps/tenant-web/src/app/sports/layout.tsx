@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Reservar canchas",
+  title: "Directorio de sedes",
   description:
     "Directorio de complejos deportivos con reserva online en Kallpa Nexus. Busca por ciudad, deporte o nombre.",
 };

@@ -1,6 +1,7 @@
 "use client";
 
 import { consultarDniPublico } from "@/lib/consulta-dni-public";
+import { SportFunnelEvents, trackSportFunnel } from "@/lib/analytics/sport-reserva-funnel";
 import { publicSportApi } from "@/lib/public-api";
 import {
   montoAdelantoWeb,
@@ -209,6 +210,23 @@ export function PublicReservaModal({
     },
     onSuccess: (data) => {
       setError(null);
+      trackSportFunnel(SportFunnelEvents.reservaSubmit, {
+        tenant_slug: slug,
+        cancha_id: canchaId,
+        cancha_nombre: canchaNombre,
+        fecha,
+        horas_count: horas.length,
+        total_pen: data?.total ?? total,
+        funnel_step: "solicitud_enviada",
+      });
+      trackSportFunnel(SportFunnelEvents.reservaComplete, {
+        tenant_slug: slug,
+        cancha_id: canchaId,
+        cancha_nombre: canchaNombre,
+        horas_count: horas.length,
+        total_pen: data?.total ?? total,
+        funnel_step: "api_ok",
+      });
       const tel = data?.telefonoWa?.replace(/\D/g, "") ?? "";
       const pagoTxt =
         data?.tipoAdelanto === "SinAdelanto"
@@ -220,6 +238,11 @@ export function PublicReservaModal({
       onEnviado(whatsAppUrl ? { whatsAppUrl } : undefined);
     },
     onError: (e) => {
+      trackSportFunnel(SportFunnelEvents.reservaError, {
+        tenant_slug: slug,
+        cancha_id: canchaId,
+        funnel_step: "api_error",
+      });
       setError(e instanceof Error ? e.message : "No se pudo enviar la solicitud.");
     },
   });

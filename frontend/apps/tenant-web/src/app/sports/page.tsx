@@ -6,6 +6,7 @@ import {
   SportsHubFilterSelect,
 } from "@/components/public/sports-hub-filter-select";
 import { PUBLIC_HERO_IMAGE } from "@/lib/public-brand";
+import { SportFunnelEvents } from "@/lib/analytics/sport-reserva-funnel";
 import { publicSportApi } from "@/lib/public-api";
 import { resolvePublicMediaUrl } from "@/lib/tenant-media-url";
 import type { PublicHubSedeCard } from "@kallpanexus/types";
@@ -108,6 +109,9 @@ function SedeCard({ sede }: { sede: PublicHubSedeCard }) {
         </div>
         <Link
           href={href}
+          data-ga-event={SportFunnelEvents.hubSedeClick}
+          data-ga-section="sport_hub"
+          data-ga-label={`${sede.slug}/${sede.sedeSlug ?? "sede"}`}
           className="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 py-2.5 text-sm font-semibold text-white shadow-md shadow-emerald-600/25 transition hover:from-emerald-500 hover:to-teal-500 hover:shadow-lg"
         >
           Ver detalles y reservar

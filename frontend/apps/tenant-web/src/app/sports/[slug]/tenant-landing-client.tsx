@@ -6,6 +6,7 @@ import { PublicDisponibilidadCanchas } from "@/components/public/public-disponib
 import { PublicHeroLanding } from "@/components/public/public-hero-landing";
 import { PublicSedesUbicacion } from "@/components/public/public-sedes-ubicacion";
 import { fechaHoyInput } from "@/components/public/public-mini-calendario";
+import { SportFunnelEvents, trackSportFunnel } from "@/lib/analytics/sport-reserva-funnel";
 import { publicSportApi } from "@/lib/public-api";
 import {
   PUBLIC_HERO_IMAGE,
@@ -87,6 +88,15 @@ export function TenantLandingClient({ params }: Props) {
     if (canchaReservar) return;
     if (canchas.length === 1) setCanchaReservar(canchas[0]!.id);
   }, [canchas, canchaReservar]);
+
+  useEffect(() => {
+    if (!negocio) return;
+    const titulo =
+      negocio.tituloLanding?.trim() ||
+      sucursalSeleccionada?.nombre ||
+      negocio.nombreComercial;
+    document.title = `${titulo} | Nexus Sports`;
+  }, [negocio, sucursalSeleccionada]);
 
   if (negocioQ.isLoading) {
     return (
@@ -176,7 +186,14 @@ export function TenantLandingClient({ params }: Props) {
           initialFecha={fechaReservar}
           productos={productos}
           carrito={carrito}
-          onReservaEnviada={() => setEnviado(true)}
+          onReservaEnviada={() => {
+            trackSportFunnel(SportFunnelEvents.reservaComplete, {
+              tenant_slug: slug,
+              sede_slug: sedeQuery || undefined,
+              funnel_step: "confirmacion_pantalla",
+            });
+            setEnviado(true);
+          }}
         />
 
         <PublicSedesUbicacion

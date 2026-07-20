@@ -6,6 +6,7 @@ import { resolvePublicMediaUrl } from "@/lib/tenant-media-url";
 import type { PublicProductoWeb, PublicReservaSlot } from "@kallpanexus/types";
 import { formatMoneyPEN, documentoClienteListoParaBuscar } from "@kallpanexus/shared";
 import { etiquetaEstadoReservaPublica } from "@/lib/public-reserva-estado";
+import { SportFunnelEvents, trackSportFunnel } from "@/lib/analytics/sport-reserva-funnel";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -106,7 +107,27 @@ export function PublicDisponibilidadCanchas({
 
   function abrirModal() {
     if (horasSel.length === 0) return;
+    trackSportFunnel(SportFunnelEvents.horariosOpenModal, {
+      tenant_slug: slug,
+      cancha_id: canchaId,
+      cancha_nombre: canchaActiva?.nombre,
+      fecha,
+      horas_count: horasSel.length,
+      funnel_step: "confirmar_modal",
+    });
     setModalAbierto(true);
+  }
+
+  function seleccionarCancha(id: string, nombre: string) {
+    if (id !== canchaId) {
+      trackSportFunnel(SportFunnelEvents.canchaSelect, {
+        tenant_slug: slug,
+        cancha_id: id,
+        cancha_nombre: nombre,
+        funnel_step: "elegir_cancha",
+      });
+    }
+    setCanchaId(id);
   }
 
   return (
@@ -267,7 +288,7 @@ export function PublicDisponibilidadCanchas({
                         ? "border border-slate-200 bg-slate-50 text-slate-700"
                         : "border border-emerald-600 bg-white text-emerald-700 hover:bg-emerald-50"
                     }`}
-                    onClick={() => setCanchaId(c.id)}
+                    onClick={() => seleccionarCancha(c.id, c.nombre)}
                   >
                     {sel ? "Seleccionada" : "Ver horarios"}
                   </button>

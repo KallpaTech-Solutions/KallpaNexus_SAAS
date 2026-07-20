@@ -1,10 +1,12 @@
 import { GoogleAnalyticsHead } from "@/components/analytics/google-analytics-head";
 import { PublicAnalyticsClicks } from "@/components/analytics/public-analytics-clicks";
+import { PublicSportPageView } from "@/components/analytics/public-sport-page-view";
 import { TenantGoogleAnalyticsNavigation } from "@/components/analytics/tenant-google-analytics";
 import { Providers } from "@/components/providers";
 import { readGaMeasurementId } from "@/lib/google-analytics";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Suspense } from "react";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -42,7 +44,10 @@ export default function RootLayout({
         <Providers>{children}</Providers>
         {gaId ? (
           <>
-            <TenantGoogleAnalyticsNavigation measurementId={gaId} />
+            <Suspense fallback={null}>
+              <TenantGoogleAnalyticsNavigation measurementId={gaId} />
+              <PublicSportPageView />
+            </Suspense>
             <PublicAnalyticsClicks />
           </>
         ) : null}

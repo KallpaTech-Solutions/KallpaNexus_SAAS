@@ -118,7 +118,7 @@ public class PublicHubController : ControllerBase
                     totalCanchas = canchas.Count,
                     tiposCancha = tipos,
                     sedeSlug,
-                    urlReserva = $"/t/{tenant.Subdomain}?sede={sedeSlug}#reservar",
+                    urlReserva = $"/sports/{tenant.Subdomain}?sede={sedeSlug}#reservar",
                     imagenHeroUrl = cfg.ImagenHeroRuta,
                 });
             }
