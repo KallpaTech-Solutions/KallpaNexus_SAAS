@@ -147,13 +147,6 @@ using (var scope = app.Services.CreateScope())
             appDb,
             tenantProvider,
             config);
-        await CatalogDemoTenantSeeder.SeedAsync(
-            masterDb,
-            appDb,
-            tenantProvider,
-            config,
-            scope.ServiceProvider.GetService<ILoggerFactory>()?
-                .CreateLogger("CatalogDemoTenantSeeder"));
     }
     catch (Exception ex) when (app.Environment.IsDevelopment() && IsDbConnectivityFailure(ex))
     {
